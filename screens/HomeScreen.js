@@ -9,7 +9,7 @@ import {
   Button
 } from 'react-native';
 
-import {getFormattedHoursMinutes, calculateTimeDiff} from '../util/time';
+import {getFormattedHoursMinutes, getTimeInterval} from '../util/time';
 
 class HomeScreen extends Component
 {
@@ -36,7 +36,7 @@ class HomeScreen extends Component
 
             <View style={components.TimeRecordRowTotalTime}>
               <Text>
-                {calculateTimeDiff(record.startTime, record.endTime)}
+                {getTimeInterval(record.startTime, record.endTime, record.breakDuration)}
               </Text>
             </View>
 
@@ -46,7 +46,7 @@ class HomeScreen extends Component
                 <Text>{record.orderNumber}</Text>
 
                 <View style={components.TimeRecordRowTimeDetail}>
-                  <Text>15 min</Text>
+                  <Text style={{marginRight: 15}}>{record.breakDuration}min</Text>
                   <Text>{getFormattedHoursMinutes(record.startTime)} - {getFormattedHoursMinutes(record.endTime)}</Text>
                 </View>
 

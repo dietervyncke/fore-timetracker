@@ -4,18 +4,12 @@ export const getFormattedHoursMinutes = (time) => {
   return moment(time).format('HH:mm');
 };
 
-export const getTimeDiff = (startTime, endTime) => {
-  let diffTime = moment(endTime).diff(moment(startTime));
-  return moment.max(moment(diffTime), moment(0));
-};
+export const getTimeInterval = (startTime, endTime, breakDuration = 0) => {
+  const start = moment.utc(startTime, 'HH:mm');
+  const end = moment.utc(endTime, 'HH:mm');
+  const diff = moment.duration(end.diff(start));
 
-export const getFormattedTimeDiff = (milliseconds) => {
-  const hours = Math.floor((milliseconds)/(60*60*1000));
-  const minutes = Math.floor((milliseconds % (60*60*1000))/(60*1000));
+  diff.subtract(breakDuration, 'minutes');
 
-  return String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0');
-};
-
-export const calculateTimeDiff = (startTime, endTime) => {
-  return getFormattedTimeDiff(getTimeDiff(startTime, endTime));
+  return moment.utc(+diff).format('HH:mm');
 };

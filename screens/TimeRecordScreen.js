@@ -4,7 +4,7 @@ import {
   View, TextInput, Button, Text
 } from 'react-native';
 
-import {getFormattedHoursMinutes, calculateTimeDiff} from '../util/time';
+import {getFormattedHoursMinutes, getTimeInterval} from '../util/time';
 import 'moment-round';
 
 import components from '../constants/Components';
@@ -23,7 +23,6 @@ class TimeRecordScreen extends React.Component
 
   state = {
     record: {},
-    totalRecordTime: 0,
     isDateTimePickerVisible: false,
     activeDateTimeProperty: null
   };
@@ -104,17 +103,26 @@ class TimeRecordScreen extends React.Component
 
             <View style={components.FieldsetRow}>
               <View style={components.FieldsetGroup}>
-                <Text>Schaft:</Text>
+                <Text>Break:</Text>
 
-                <Text style={[components.Input, {marginLeft: 5, marginRight: 5, flex: 1}]} onPress={() => alert('shaft van 15 min')}>
+                <Text style={[components.Input, {marginLeft: 5, marginRight: 5, flex: 1}]}
+                      onPress={() => this.onUpdateInputField('breakDuration', 0)}>
+                  0min
+                </Text>
+
+                <Text style={[components.Input, {marginLeft: 5, marginRight: 5, flex: 1}]}
+                      onPress={() => this.onUpdateInputField('breakDuration', 15)}>
                   15min
                 </Text>
 
-                <Text style={[components.Input, {marginRight: 5, flex: 1}]} onPress={() => alert('shaft van 15 min')}>
+                <Text style={[components.Input, {marginRight: 5, flex: 1}]}
+                      onPress={() => this.onUpdateInputField('breakDuration', 30)}>
                   30min
                 </Text>
 
-                <TextInput style={components.Input} placeholder="Anders" onChangeText={() => alert('anders')}/>
+                <TextInput style={components.Input} placeholder="Anders"
+                           onChangeText={(breakDuration) => this.onUpdateInputField('breakDuration', parseInt(breakDuration))}
+                />
 
               </View>
             </View>
@@ -133,7 +141,7 @@ class TimeRecordScreen extends React.Component
         </View>
 
         <Text>
-          {calculateTimeDiff(this.state.record.startTime, this.state.record.endTime)}
+          {getTimeInterval(this.state.record.startTime, this.state.record.endTime, this.state.record.breakDuration)}
         </Text>
 
         <Button title="Save" onPress={this.onPressSaveRow.bind(this)}/>

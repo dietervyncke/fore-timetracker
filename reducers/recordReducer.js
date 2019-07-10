@@ -17,6 +17,7 @@ const initialState = {
     orderNumber: '',
     startTime: initialStartTime,
     endTime: initialEndTime,
+    breakDuration: 0,
     description: ''
   },
   records: []
