@@ -1,11 +1,15 @@
 const color01 = '#ffffff';
 const color02 = '#000000';
 const color03 = '#041735';
+const color04 = '#bd241f';
+const color05 = '#959595';
 
 export default {
   color01,
   color02,
   color03,
+  color04,
+  color05,
   tabIconDefault: '#ccc',
   tabIconSelected: color03,
   tabBar: '#fefefe',

@@ -13,3 +13,11 @@ export const getTimeInterval = (startTime, endTime, breakDuration = 0) => {
 
   return moment.utc(+diff).format('HH:mm');
 };
+
+export const addTime = (dateTime, value, key) => {
+  return moment(dateTime).add(value, key);
+};
+
+export const subtractTime = (dateTime, value, key) => {
+  return moment(dateTime).subtract(value, key);
+};

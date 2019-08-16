@@ -6,7 +6,8 @@ import components from '../constants/Components';
 import {
   Text,
   View,
-  Button
+  Button,
+  FlatList
 } from 'react-native';
 
 import {getFormattedHoursMinutes, getTimeInterval} from '../util/time';
@@ -71,6 +72,43 @@ class HomeScreen extends Component
 
   }
 
+  getRenderedTimeRecord(record) {
+    return (
+      <View style={components.TimeRecordRow}>
+
+        <View style={components.TimeRecordRowTotalTime}>
+          <Text>
+            {getTimeInterval(record.startTime, record.endTime, record.breakDuration)}
+          </Text>
+        </View>
+
+        <View style={components.TimeRecordRowMain}>
+
+          <View style={components.TimeRecordRowHeader}>
+            <Text>{record.orderNumber}</Text>
+
+            <View style={components.TimeRecordRowTimeDetail}>
+              <Text style={{marginRight: 15}}>{record.breakDuration}min</Text>
+              <Text>{getFormattedHoursMinutes(record.startTime)} - {getFormattedHoursMinutes(record.endTime)}</Text>
+            </View>
+
+          </View>
+
+          <View style={components.TimeRecordRowDescription}>
+            <Text>{record.description}</Text>
+          </View>
+
+          <View style={{flexDirection: 'row'}}>
+            <Button color={colors.color03} title="Edit row" onPress={this.navigateToRecordDetail.bind(this, record.key)}/>
+            <Button color={colors.color03} title="Delete row" onPress={() => {this.props.remove(record.key)}}/>
+          </View>
+
+        </View>
+
+      </View>
+    );
+  }
+
   render() {
 
     let currentDate = this.state.currentDate;
@@ -78,7 +116,19 @@ class HomeScreen extends Component
     let mm = String(currentDate.getMonth() + 1).padStart(2, '0');
     let yyyy = currentDate.getFullYear();
 
-    let timeRecords = this.getTimeRecordRows();
+    // let timeRecords = this.getTimeRecordRows();
+
+    let timeRecords = null;
+
+    if (this.props.records) {
+
+      timeRecords = (
+        <FlatList
+          data={this.props.records}
+          renderItem={({item}) => this.getRenderedTimeRecord(item)}
+        />
+      );
+    }
 
     return (
 
@@ -92,9 +142,11 @@ class HomeScreen extends Component
         </View>
 
         {/* Main Content */}
-        {timeRecords}
+        <View style={{flex: 5}}>
+          {timeRecords}
+        </View>
 
-        <View style={{flex: 6, alignItems: 'center', justifyContent: 'center'}}>
+        <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
           <View style={{marginTop: 25}}>
             <Button color={colors.color03} title="Add row" onPress={this.navigateToRecordDetail.bind(this, null)}/>
           </View>
