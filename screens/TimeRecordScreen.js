@@ -1,10 +1,9 @@
 import React from 'react';
-import {
-  View, TextInput, Button, Text
-} from 'react-native';
+import { View, TextInput, Button, Text, StyleSheet } from 'react-native';
 
-import {getFormattedHoursMinutes, getTimeInterval, addTime, subtractTime} from '../util/time';
+import { getFormattedHoursAndMinutes, getFormattedTimeInterval, addTime, subtractTime } from '../util/time';
 import 'moment-round';
+import moment from 'moment';
 
 import colors from '../constants/Colors';
 import components from '../constants/Components';
@@ -17,16 +16,14 @@ class TimeRecordScreen extends React.Component
     title: 'Add record'
   };
 
-  constructor(props) {
-    super(props);
-  }
-
   state = {
     record: {},
     isDateTimePickerVisible: false,
     activeDateTimeValue: new Date(),
     activeDateTimeProperty: null,
-    activeBreakDuration: 0
+    activeBreakDuration: 0,
+    hasCameraPermission: null,
+    scanned: false,
   };
 
   componentDidMount() {
@@ -40,7 +37,7 @@ class TimeRecordScreen extends React.Component
     this.setState({
       isDateTimePickerVisible: true,
       activeDateTimeProperty: property,
-      activeDateTimeValue: new Date(this.state.record[property])
+      activeDateTimeValue: moment(this.state.record[property], 'HH:mm').toDate()
     });
   }
 
@@ -53,7 +50,7 @@ class TimeRecordScreen extends React.Component
 
   handleDatePicked(date) {
     let validatedDate = this.validateInputField(date);
-    this.onUpdateInputField(this.state.activeDateTimeProperty, validatedDate);
+    this.onUpdateInputField(this.state.activeDateTimeProperty, getFormattedHoursAndMinutes(validatedDate));
     this.hideDateTimePicker();
   }
 
@@ -74,11 +71,12 @@ class TimeRecordScreen extends React.Component
   };
 
   validateInputField(date) {
-    if (this.state.activeDateTimeProperty === 'endTime' && date <= this.state.record.startTime) {
+
+    if (this.state.activeDateTimeProperty === 'endTime' && date <= moment(this.state.record.startTime, 'HH:mm')) {
       return addTime(this.state.record.startTime, 15, 'minutes');
     }
 
-    if (this.state.activeDateTimeProperty === 'startTime' && date >= this.state.record.endTime) {
+    if (this.state.activeDateTimeProperty === 'startTime' && date >= moment(this.state.record.endTime, 'HH:mm')) {
       return subtractTime(this.state.record.endTime, 15, 'minutes');
     }
 
@@ -99,6 +97,8 @@ class TimeRecordScreen extends React.Component
 
   render() {
 
+    console.log(this.props.navigation.getParam('data', this.state.record.orderNumber));
+
     return (
       <View style={{flex: 1}}>
 
@@ -109,9 +109,9 @@ class TimeRecordScreen extends React.Component
             <View style={components.FieldsetRow}>
               <TextInput
                 style={components.Input}
-                onChangeText={(orderNumber) => this.onUpdateInputField('orderNumber', orderNumber)}
+                onChange={(orderNumber) => this.onUpdateInputField('orderNumber', orderNumber)}
                 placeholder="Order number"
-                value={this.state.record.orderNumber}
+                defaultValue={this.props.navigation.getParam('data') ?? this.state.record.orderNumber}
               />
             </View>
 
@@ -120,12 +120,12 @@ class TimeRecordScreen extends React.Component
 
                 <Text style={[components.Input, {marginRight: 5, flex: 1}]}
                       onPress={() => this.showDateTimePicker('startTime')}>
-                  {getFormattedHoursMinutes(this.state.record.startTime)}
+                  {this.state.record.startTime}
                 </Text>
 
                 <Text style={[components.Input, {marginLeft: 5, flex: 1}]}
                       onPress={() => this.showDateTimePicker('endTime')}>
-                  {getFormattedHoursMinutes(this.state.record.endTime)}
+                  {this.state.record.endTime}
                 </Text>
 
               </View>
@@ -173,18 +173,23 @@ class TimeRecordScreen extends React.Component
         <View style={components.TimeRecordDetailSummary}>
           <View style={components.TimeRecordDetailCalculation}>
             <Text style={[components.TimeRecordDetailTotalTime, components.Title02]}>
-              {getTimeInterval(this.state.record.startTime, this.state.record.endTime)}
+              {getFormattedTimeInterval(this.state.record.startTime, this.state.record.endTime)}
             </Text>
             <Text style={components.TimeRecordDetailBreakDuration}>
               -{this.state.activeBreakDuration} min
             </Text>
           </View>
           <Text style={components.Title01}>
-            {getTimeInterval(this.state.record.startTime, this.state.record.endTime, this.state.record.breakDuration)}
+            {getFormattedTimeInterval(this.state.record.startTime, this.state.record.endTime, this.state.record.breakDuration)}
           </Text>
         </View>
 
         <Button title="Save" onPress={this.onPressSaveRow.bind(this)} color={colors.color03}/>
+
+        <Button title="Scan" onPress={(data) => {
+          this.props.navigation.navigate('BarcodeScanner');
+          console.log(data);
+        }}/>
 
         <DateTimePicker
           mode={'time'}
@@ -201,7 +206,7 @@ class TimeRecordScreen extends React.Component
 }
 
 import { connect } from 'react-redux';
-import {addRecord, getRecord, updateRecord} from '../actions/record';
+import { addRecord, getRecord, updateRecord } from '../actions/record';
 
 const mapStateToProps = state => {
   return {

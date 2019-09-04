@@ -4,7 +4,9 @@ import {
   UPDATE_RECORD,
   GET_RECORD,
   SET_RECORD,
-  PURGE_RECORDS
+  PURGE_RECORDS,
+  SET_DATE,
+  GET_RECORDS
 } from './types';
 
 export const addRecord = payload => {
@@ -48,3 +50,12 @@ export const purgeRecords = () => {
     type: PURGE_RECORDS
   }
 };
+
+export const setDate = (date) => {
+  return {
+    type: SET_DATE,
+    date: date
+  }
+};
+
+export const getRecords = () => ({type: GET_RECORDS});

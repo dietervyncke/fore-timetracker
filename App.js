@@ -1,6 +1,10 @@
 import React from 'react';
+import { PersistGate } from 'redux-persist/integration/react'
 import { Platform, StatusBar, StyleSheet, View } from 'react-native';
-import { AppLoading, Asset, Font, Icon } from 'expo';
+import { AppLoading } from 'expo';
+import { Asset } from 'expo-asset';
+import * as Font from 'expo-font';
+import * as Icon from '@expo/vector-icons';
 import AppNavigator from './navigation/AppNavigator';
 
 import { Provider } from 'react-redux';
@@ -23,10 +27,12 @@ export default class App extends React.Component {
     } else {
       return (
         <Provider store={store}>
-          <View style={styles.container}>
-            {Platform.OS === 'ios' && <StatusBar barStyle="default" />}
-            <AppNavigator />
-          </View>
+          <PersistGate loading={null} persistor={persistor}>
+            <View style={styles.container}>
+              {Platform.OS === 'ios' && <StatusBar barStyle="default" />}
+              <AppNavigator />
+            </View>
+          </PersistGate>
         </Provider>
       );
     }
