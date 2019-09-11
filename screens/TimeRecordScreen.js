@@ -115,9 +115,9 @@ class TimeRecordScreen extends React.Component
               <View style={components.FieldsetGroup}>
                 <Input
                   containerStyle={{flex: 1}}
-                  onChange={(orderNumber) => this.onUpdateInputField('orderNumber', orderNumber)}
+                  onChangeText={(orderNumber) => this.onUpdateInputField('orderNumber', orderNumber)}
                   placeholder="Order number"
-                  defaultValue={this.state.record.orderNumber}
+                  value={this.state.record.orderNumber}
                 />
                 <Button title="Scan" buttonStyle={{backgroundColor: colors.color06, borderRadius: 0}} onPress={() => {this.props.navigation.navigate('BarcodeScanner')}}/>
               </View>
