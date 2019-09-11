@@ -10,6 +10,7 @@ import * as FileSystem from 'expo-file-system';
 import { ExportToCsv } from 'export-to-csv';
 
 import { Text, View, Button, FlatList, Alert } from 'react-native';
+import { Icon } from 'react-native-elements';
 
 import { getFormattedTimeInterval, getFormattedDate, subtractDays, addDays, timeStringToSec, formatTime } from '../util/time';
 
@@ -85,44 +86,6 @@ class HomeScreen extends Component
     this.props.setDate(getFormattedDate(nextDay));
   }
 
-  getRenderedTimeRecord(record) {
-
-    return (
-      <View style={components.TimeRecordRow}>
-
-        <View style={components.TimeRecordRowTotalTime}>
-          <Text>
-            {getFormattedTimeInterval(record.startTime, record.endTime, record.breakDuration)}
-          </Text>
-        </View>
-
-        <View style={components.TimeRecordRowMain}>
-
-          <View style={components.TimeRecordRowHeader}>
-            <Text>{record.orderNumber}</Text>
-
-            <View style={components.TimeRecordRowTimeDetail}>
-              <Text style={{marginRight: 15}}>{record.breakDuration}min</Text>
-              <Text>{record.startTime} - {record.endTime}</Text>
-            </View>
-
-          </View>
-
-          <View style={components.TimeRecordRowDescription}>
-            <Text>{record.description}</Text>
-          </View>
-
-          <View style={{flexDirection: 'row'}}>
-            <Button color={colors.color03} title="Edit row" onPress={this.navigateToRecordDetail.bind(this, record.key)}/>
-            <Button color={colors.color03} title="Delete row" onPress={() => {this.props.remove(record.key)}}/>
-          </View>
-
-        </View>
-
-      </View>
-    );
-  }
-
   exportData() {
     let fileName = 'test.csv';
     let csvContent = this.exportCsvFile(this.props.records);
@@ -181,6 +144,44 @@ class HomeScreen extends Component
     });
   }
 
+  getRenderedTimeRecord(record) {
+
+    return (
+      <View style={components.TimeRecordRow}>
+
+        <View style={components.TimeRecordRowTotalTime}>
+          <Text>
+            {getFormattedTimeInterval(record.startTime, record.endTime, record.breakDuration)}
+          </Text>
+        </View>
+
+        <View style={components.TimeRecordRowMain}>
+
+          <View style={components.TimeRecordRowHeader}>
+            <Text>{record.orderNumber}</Text>
+
+            <View style={components.TimeRecordRowTimeDetail}>
+              <Text style={{marginRight: 15}}>{record.breakDuration}min</Text>
+              <Text>{record.startTime} - {record.endTime}</Text>
+            </View>
+
+          </View>
+
+          <View style={components.TimeRecordRowDescription}>
+            <Text>{record.description}</Text>
+          </View>
+
+          <View style={{flexDirection: 'row'}}>
+            <Button color={colors.color03} title="Edit row" onPress={this.navigateToRecordDetail.bind(this, record.key)}/>
+            <Button color={colors.color03} title="Delete row" onPress={() => {this.props.remove(record.key)}}/>
+          </View>
+
+        </View>
+
+      </View>
+    );
+  }
+
   render() {
 
     let dayTotal = null;
@@ -210,15 +211,11 @@ class HomeScreen extends Component
 
         {/* Header */}
         <View style={{height: 75, flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
-            <Text onPress={() => {this.setPreviousDay()}} style={{paddingRight: 15}}>
-              Previous
-            </Text>
+            <Icon type="feather" name="chevron-left" color={colors.color06} onPress={() => {this.setPreviousDay()}} iconStyle={{paddingRight: 15}} />
             <Text style={styles.title01} onPress={() => this.showDateTimePicker()}>
               {currentDate}
             </Text>
-          <Text onPress={() => {this.setNextDay()}} style={{paddingLeft: 15}}>
-            Next
-          </Text>
+          <Icon type="feather" name="chevron-right" color={colors.color06} onPress={() => {this.setNextDay()}} iconStyle={{paddingLeft: 15}} />
         </View>
 
         {/* Main Content */}
@@ -233,11 +230,12 @@ class HomeScreen extends Component
 
         <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
           <View style={{marginTop: 25}}>
-            <Button color={colors.color03} title="Add row" onPress={this.navigateToRecordDetail.bind(this, null)}/>
+            <Icon name="plus-circle" type="feather" color={colors.color06} size={30}
+                  onPress={this.navigateToRecordDetail.bind(this, null)}/>
           </View>
         </View>
 
-        <Button color={colors.color03} title="Send email data" onPress={() => this.exportData()}/>
+        <Button style={{marginTop: 25}} color={colors.color03} title="Send email data" onPress={() => this.exportData()}/>
 
         <DateTimePicker
           mode={'date'}

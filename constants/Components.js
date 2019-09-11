@@ -28,11 +28,9 @@ export default
     paddingTop: 10
   },
   Input: {
-    height: 40,
-    borderColor: colors.color02,
     borderWidth: 1,
-    marginBottom: 10,
-    padding: 10
+    borderColor: colors.color06,
+    padding: 8
   },
   FieldsetRow: {
    height: 50

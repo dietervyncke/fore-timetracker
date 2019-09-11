@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, TextInput, Button, Text, StyleSheet } from 'react-native';
+import { View, TouchableWithoutFeedback } from 'react-native';
+import { Button, Input, Text, Icon } from 'react-native-elements';
 
 import { getFormattedHoursAndMinutes, getFormattedTimeInterval, addTime, subtractTime } from '../util/time';
 import 'moment-round';
@@ -31,6 +32,12 @@ class TimeRecordScreen extends React.Component
       record: this.props.record,
       activeBreakDuration: this.props.record.breakDuration
     });
+  }
+
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    if (prevProps.navigation.getParam('url') !== this.props.navigation.getParam('url')) {
+      this.onUpdateInputField('orderNumber', this.props.navigation.getParam('url'));
+    }
   }
 
   showDateTimePicker(property) {
@@ -91,13 +98,11 @@ class TimeRecordScreen extends React.Component
 
   getActiveBreakDurationStyling(id) {
     if (id === this.state.activeBreakDuration) {
-      return {backgroundColor: 'red'};
+      return {backgroundColor: colors.color06, color: colors.color01};
     }
   }
 
   render() {
-
-    console.log(this.props.navigation.getParam('data', this.state.record.orderNumber));
 
     return (
       <View style={{flex: 1}}>
@@ -107,59 +112,65 @@ class TimeRecordScreen extends React.Component
           <View style={{alignItems: 'stretch'}}>
 
             <View style={components.FieldsetRow}>
-              <TextInput
-                style={components.Input}
-                onChange={(orderNumber) => this.onUpdateInputField('orderNumber', orderNumber)}
-                placeholder="Order number"
-                defaultValue={this.props.navigation.getParam('data') ?? this.state.record.orderNumber}
-              />
-            </View>
-
-            <View style={components.FieldsetRow}>
               <View style={components.FieldsetGroup}>
-
-                <Text style={[components.Input, {marginRight: 5, flex: 1}]}
-                      onPress={() => this.showDateTimePicker('startTime')}>
-                  {this.state.record.startTime}
-                </Text>
-
-                <Text style={[components.Input, {marginLeft: 5, flex: 1}]}
-                      onPress={() => this.showDateTimePicker('endTime')}>
-                  {this.state.record.endTime}
-                </Text>
-
-              </View>
-            </View>
-
-            <View style={components.FieldsetRow}>
-              <View style={components.FieldsetGroup}>
-                <Text>Break:</Text>
-
-                <Text style={[components.Input, {marginLeft: 5, marginRight: 5, flex: 1}, this.getActiveBreakDurationStyling(0)]}
-                      onPress={() => this.handleBreakDuration(0)}>
-                  0 min
-                </Text>
-
-                <Text style={[components.Input, {marginLeft: 5, marginRight: 5, flex: 1}, this.getActiveBreakDurationStyling(15)]}
-                      onPress={() => this.handleBreakDuration(15)}>
-                  15 min
-                </Text>
-
-                <Text style={[components.Input, {marginLeft: 5, marginRight: 5, flex: 1}, this.getActiveBreakDurationStyling(30)]}
-                      onPress={() => this.handleBreakDuration(30)}>
-                  30 min
-                </Text>
-
-                <TextInput style={components.Input} placeholder="Anders"
-                           onChangeText={(breakDuration) => this.handleBreakDuration(parseInt(breakDuration))}
+                <Input
+                  containerStyle={{flex: 1}}
+                  onChange={(orderNumber) => this.onUpdateInputField('orderNumber', orderNumber)}
+                  placeholder="Order number"
+                  defaultValue={this.state.record.orderNumber}
                 />
+                <Button title="Scan" buttonStyle={{backgroundColor: colors.color06, borderRadius: 0}} onPress={() => {this.props.navigation.navigate('BarcodeScanner')}}/>
+              </View>
+            </View>
+
+            <View style={components.FieldsetRow}>
+              <View style={components.FieldsetGroup}>
+
+                <TouchableWithoutFeedback onPress={() => {this.showDateTimePicker('startTime')}}>
+                  <View style={{flex: 1}}>
+                    <View pointerEvents="none" style={{flex: 1}}>
+                      <Input value={this.state.record.startTime} />
+                    </View>
+                  </View>
+                </TouchableWithoutFeedback>
+
+                <TouchableWithoutFeedback onPress={() => {this.showDateTimePicker('endTime')}}>
+                  <View style={{flex: 1}}>
+                    <View pointerEvents="none" style={{flex: 1}}>
+                      <Input value={this.state.record.endTime} />
+                    </View>
+                  </View>
+                </TouchableWithoutFeedback>
 
               </View>
             </View>
 
             <View style={components.FieldsetRow}>
-              <TextInput
-                style={components.Input}
+              <View style={components.FieldsetGroup}>
+                <Icon type="feather" name="pause" color={colors.color06} size={30} />
+
+                <View style={{flex: 1, flexDirection: 'row'}}>
+                  <Text style={[components.Input, {marginLeft: 10, marginRight: 5, flex: 1, textAlign: 'center'}, this.getActiveBreakDurationStyling(0)]}
+                        onPress={() => this.handleBreakDuration(0)}>
+                    0 min
+                  </Text>
+
+                  <Text style={[components.Input, {marginLeft: 5, marginRight: 5, flex: 1, textAlign: 'center'}, this.getActiveBreakDurationStyling(15)]}
+                        onPress={() => this.handleBreakDuration(15)}>
+                    15 min
+                  </Text>
+
+                  <Text style={[components.Input, {marginLeft: 5, marginRight: 5, flex: 1, textAlign: 'center'}, this.getActiveBreakDurationStyling(30)]}
+                        onPress={() => this.handleBreakDuration(30)}>
+                    30 min
+                  </Text>
+                </View>
+
+              </View>
+            </View>
+
+            <View style={components.FieldsetRow}>
+              <Input
                 onChangeText={(description) => this.onUpdateInputField('description', description)}
                 placeholder="Description"
                 value={this.state.record.description}
@@ -184,12 +195,8 @@ class TimeRecordScreen extends React.Component
           </Text>
         </View>
 
-        <Button title="Save" onPress={this.onPressSaveRow.bind(this)} color={colors.color03}/>
-
-        <Button title="Scan" onPress={(data) => {
-          this.props.navigation.navigate('BarcodeScanner');
-          console.log(data);
-        }}/>
+        <Button title="Save" buttonStyle={{backgroundColor: colors.color06, borderRadius: 0, padding: 10}}
+                onPress={this.onPressSaveRow.bind(this)} color={colors.color03}/>
 
         <DateTimePicker
           mode={'time'}
