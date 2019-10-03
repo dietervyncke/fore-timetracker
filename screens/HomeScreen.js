@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import styles from '../constants/Typography';
+import typography from '../constants/Typography';
 import colors from '../constants/Colors';
 import components from '../constants/Components';
 import moment from 'moment';
@@ -9,7 +9,8 @@ import * as MailComposer from 'expo-mail-composer';
 import * as FileSystem from 'expo-file-system';
 import { ExportToCsv } from 'export-to-csv';
 
-import { Text, View, Button, FlatList, Alert } from 'react-native';
+import { Text, View, Button, Alert, TouchableHighlight } from 'react-native';
+import { SwipeListView } from 'react-native-swipe-list-view';
 import { Icon } from 'react-native-elements';
 
 import { getFormattedTimeInterval, getFormattedDate, subtractDays, addDays, timeStringToSec, formatTime } from '../util/time';
@@ -146,39 +147,38 @@ class HomeScreen extends Component
 
   getRenderedTimeRecord(record) {
 
+    let breakDuration;
+
+    if (record.breakDuration > 0) {
+      breakDuration = <Text style={{marginRight: 15}}>{record.breakDuration}min</Text>
+    }
+
     return (
-      <View style={components.TimeRecordRow}>
+      <TouchableHighlight onPress={this.navigateToRecordDetail.bind(this, record.key)}>
+        <View style={components.TimeRecordRow}>
 
-        <View style={components.TimeRecordRowTotalTime}>
-          <Text>
-            {getFormattedTimeInterval(record.startTime, record.endTime, record.breakDuration)}
-          </Text>
-        </View>
+          <View style={components.TimeRecordRowMain}>
 
-        <View style={components.TimeRecordRowMain}>
+            <View style={components.TimeRecordRowHeader}>
+              <Text>{record.orderNumber}</Text>
 
-          <View style={components.TimeRecordRowHeader}>
-            <Text>{record.orderNumber}</Text>
+              <View style={components.TimeRecordRowTimeDetail}>
+                {breakDuration}
+                <Text>{record.startTime} - {record.endTime}</Text>
+              </View>
 
-            <View style={components.TimeRecordRowTimeDetail}>
-              <Text style={{marginRight: 15}}>{record.breakDuration}min</Text>
-              <Text>{record.startTime} - {record.endTime}</Text>
             </View>
 
           </View>
 
-          <View style={components.TimeRecordRowDescription}>
-            <Text>{record.description}</Text>
-          </View>
-
-          <View style={{flexDirection: 'row'}}>
-            <Button color={colors.color03} title="Edit row" onPress={this.navigateToRecordDetail.bind(this, record.key)}/>
-            <Button color={colors.color03} title="Delete row" onPress={() => {this.props.remove(record.key)}}/>
+          <View style={components.TimeRecordRowTotalTime}>
+            <Text>
+              {getFormattedTimeInterval(record.startTime, record.endTime, record.breakDuration)}
+            </Text>
           </View>
 
         </View>
-
-      </View>
+      </TouchableHighlight>
     );
   }
 
@@ -195,10 +195,18 @@ class HomeScreen extends Component
     if (this.props.records.length) {
 
       timeRecords = (
-        <FlatList
+        <SwipeListView
           data={this.props.records}
           keyExtractor={(item, index) => index.toString()}
           renderItem={({item}) => this.getRenderedTimeRecord(item)}
+          renderHiddenItem={ (data) => (
+            <View style={{justifyContent: 'flex-end', flex: 1, flexDirection: 'row', alignItems: 'center'}}>
+              <Icon name="x" type="feather" color={colors.color06} size={30}
+                    iconStyle={{paddingRight: 10}}
+                    onPress={() => {this.props.remove(data.item.key)}}/>
+            </View>
+          )}
+          rightOpenValue={-50}
         />
       );
 
@@ -212,7 +220,7 @@ class HomeScreen extends Component
         {/* Header */}
         <View style={{height: 75, flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
             <Icon type="feather" name="chevron-left" color={colors.color06} onPress={() => {this.setPreviousDay()}} iconStyle={{paddingRight: 15}} />
-            <Text style={styles.title01} onPress={() => this.showDateTimePicker()}>
+            <Text style={typography.title01} onPress={() => this.showDateTimePicker()}>
               {currentDate}
             </Text>
           <Icon type="feather" name="chevron-right" color={colors.color06} onPress={() => {this.setNextDay()}} iconStyle={{paddingLeft: 15}} />

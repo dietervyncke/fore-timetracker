@@ -8,10 +8,12 @@ export default
     borderTopColor: colors.color02,
     borderBottomWidth: 1,
     borderBottomColor: colors.color02,
-    padding: 10
+    padding: 20,
+    paddingLeft: 15,
+    backgroundColor: '#CCC'
   },
   TimeRecordRowTotalTime: {
-    paddingRight: 15
+    paddingLeft: 15
   },
   TimeRecordRowMain: {
     flex: 1
