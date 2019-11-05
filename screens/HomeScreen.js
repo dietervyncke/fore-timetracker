@@ -1,46 +1,60 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
+
+import { getFormattedTimeInterval, getFormattedDate, subtractDays, addDays, timeStringToSec, formatTime } from '../util/time';
 import typography from '../constants/Typography';
 import colors from '../constants/Colors';
 import components from '../constants/Components';
 import moment from 'moment';
 
-import DateTimePicker from "react-native-modal-datetime-picker";
-import * as MailComposer from 'expo-mail-composer';
-import * as FileSystem from 'expo-file-system';
-import { ExportToCsv } from 'export-to-csv';
+import { convertDataToCsv } from "../util/export";
+import { sendMail } from "../util/send";
 
-import { Text, View, Button, Alert, TouchableHighlight } from 'react-native';
+import DateTimePicker from './DateTimePicker';
+
+import { Text, View, Alert, TouchableHighlight } from 'react-native';
+import { Icon, Button } from 'react-native-elements';
 import { SwipeListView } from 'react-native-swipe-list-view';
-import { Icon } from 'react-native-elements';
-
-import { getFormattedTimeInterval, getFormattedDate, subtractDays, addDays, timeStringToSec, formatTime } from '../util/time';
 
 class HomeScreen extends Component
 {
-  static navigationOptions = {
-    title: 'Time clock',
+  static navigationOptions = ({ navigation }) => {
+    return {
+      title: 'Time clock',
+      headerLeft: () => (
+          <Icon type="feather" name="settings" color={colors.color06}
+                onPress={() => navigation.push('Settings')} iconStyle={{paddingLeft: 10}}
+          />
+      ),
+    }
   };
-
-  constructor(props) {
-    super(props);
-  }
 
   state = {
     isDateTimePickerVisible: false,
     activeDateTimeProperty: null,
-    dayTotal: 0
+    dayTotal: 0,
+    isSynced: false
   };
 
   componentDidUpdate(prevProps, prevState, snapshot) {
     if (prevProps.records !== this.props.records) {
       let dayTotal = this.getDayTotal();
-      this.setState({dayTotal: dayTotal});
+      let isSynced = this.isDataSynced();
+
+      this.setState({
+        dayTotal: dayTotal,
+        isSynced: isSynced
+      });
+
     }
   }
 
   componentDidMount() {
     let dayTotal = this.getDayTotal();
-    this.setState({dayTotal: dayTotal});
+    let isSynced = this.isDataSynced();
+    this.setState({
+      dayTotal: dayTotal,
+      isSynced: isSynced
+    });
   }
 
   getDayTotal() {
@@ -54,10 +68,18 @@ class HomeScreen extends Component
     return dayTotal;
   }
 
+  isDataSynced() {
+    if (this.props.records.length) {
+      let unSyncedData = this.props.records.find(r => r.isSynced === false);
+      return unSyncedData === undefined;
+    }
+  }
+
+  /**
+  * DateTimePicker methods
+  **/
   showDateTimePicker() {
-    this.setState({
-      isDateTimePickerVisible: true
-    });
+    this.setState({ isDateTimePickerVisible: true });
   }
 
   hideDateTimePicker() {
@@ -87,61 +109,49 @@ class HomeScreen extends Component
     this.props.setDate(getFormattedDate(nextDay));
   }
 
+  /**
+   *  Export and send mail
+   **/
   exportData() {
-    let fileName = 'test.csv';
-    let csvContent = this.exportCsvFile(this.props.records);
-    const fileUri = FileSystem.documentDirectory+fileName;
 
-    this.writeFile(csvContent, fileUri).then(() => {
-     this.getFileInfo(fileUri).then(file => {
-       this.sendMail(
-         'fore time tracker record',
-         ['vynckedieter@gmail.com'],
-         'testjen',
-         [file.uri]
-       );
-     });
-   });
+    let data = this.prepareDataForExport(Object.assign({}, {records: this.props.records}, {code: this.props.user.code}));
+    let headers = ['Date - Time', 'Werkorder', 'Van', 'Tot', 'Opmerking', 'Schaft 15\'', 'Schaft 30\'', 'Totaal', 'Personeelscode'];
+
+    convertDataToCsv(this.props.user.emailSubject+'.csv', data, headers).then(file => {
+
+      sendMail(
+          this.props.user.emailSubject,
+          [this.props.user.storeEmail],
+          this.props.user.emailSubject,
+          [file.uri]
+      ).then(response => {
+
+        if (response.status === 'sent') {
+          this.props.syncData();
+          Alert.alert('Success ', 'Email sent successfully');
+        }
+
+      });
+    });
   }
 
-  async getFileInfo(fileUri) {
-    return await FileSystem.getInfoAsync(fileUri);
-  }
+  prepareDataForExport(data) {
+    return data.records.map(record => {
 
-  async writeFile(content, fileUri) {
-    return await FileSystem.writeAsStringAsync(
-      fileUri,
-      content
-    );
-  }
+      let longBreak = Math.floor(record.breakDuration/30);
+      let shortBreak = (record.breakDuration % 30)/15;
 
-  exportCsvFile(objects) {
-    const options = {
-      fieldSeparator: ',',
-      quoteStrings: '"',
-      decimalSeparator: '.',
-      showLabels: true,
-      showTitle: false,
-      useTextFile: false,
-      useBom: true,
-      useKeysAsHeaders: true
-    };
-    const csvExporter = new ExportToCsv(options);
-    return csvExporter.generateCsv(objects, true);
-  }
-
-  sendMail(subject, recipients = [], body, attachments = []) {
-    MailComposer.composeAsync({
-      recipients: recipients,
-      subject: subject,
-      body: body,
-      isHtml: true,
-      attachments
-    }).then((response) => {
-
-      if (response.status === "send") {
-        Alert.alert('Success ', 'Email sent successfully');
-      }
+      return {
+        'date': record.date,
+        'orderNumber': record.orderNumber,
+        'startTime': record.startTime,
+        'endTime': record.endTime,
+        'description': record.description,
+        'shortBreaks': shortBreak,
+        'longBreaks': longBreak,
+        'total': getFormattedTimeInterval(record.startTime, record.endTime, record.breakDuration),
+        'userCode': data.code
+      };
     });
   }
 
@@ -210,7 +220,9 @@ class HomeScreen extends Component
         />
       );
 
-      dayTotal = <Text>{this.state.dayTotal}</Text>;
+      dayTotal = (
+          <Text>{this.state.dayTotal}</Text>
+      );
     }
 
     return (
@@ -218,7 +230,7 @@ class HomeScreen extends Component
       <View style={{flex: 1}}>
 
         {/* Header */}
-        <View style={{height: 75, flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
+        <View style={[{height: 75, flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}, this.state.isSynced ? components.SyncedData : '']}>
             <Icon type="feather" name="chevron-left" color={colors.color06} onPress={() => {this.setPreviousDay()}} iconStyle={{paddingRight: 15}} />
             <Text style={typography.title01} onPress={() => this.showDateTimePicker()}>
               {currentDate}
@@ -231,11 +243,12 @@ class HomeScreen extends Component
           <View>
             {timeRecords}
           </View>
-          <View>
+          <View style={{flex: 1, alignItems: 'flex-end', paddingRight: 20, paddingTop: 10}}>
             {dayTotal}
           </View>
         </View>
 
+        {/* Footer */}
         <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
           <View style={{marginTop: 25}}>
             <Icon name="plus-circle" type="feather" color={colors.color06} size={30}
@@ -243,14 +256,15 @@ class HomeScreen extends Component
           </View>
         </View>
 
-        <Button style={{marginTop: 25}} color={colors.color03} title="Send email data" onPress={() => this.exportData()}/>
+        <Button style={{marginTop: 25}} color={colors.color03} title="Send email data" onPress={() => this.exportData()}
+                buttonStyle={{backgroundColor: colors.color06, borderRadius: 0, padding: 10}}
+        />
 
         <DateTimePicker
-          mode={'date'}
-          date={moment(this.props.currentDate, 'DD/MM/YYYY').toDate()}
-          isVisible={this.state.isDateTimePickerVisible}
-          onConfirm={this.handleDatePicked.bind(this)}
-          onCancel={this.hideDateTimePicker.bind(this)}
+            date={moment(this.props.currentDate, 'YYYY/MM/DD').toDate()}
+            isVisible={this.state.isDateTimePickerVisible}
+            onConfirm={this.handleDatePicked.bind(this)}
+            onCancel={this.hideDateTimePicker.bind(this)}
         />
 
       </View>
@@ -259,14 +273,15 @@ class HomeScreen extends Component
 }
 
 import { connect } from 'react-redux';
-import { removeRecord, setRecord, setDate } from '../actions/record';
+import { removeRecord, setRecord, setDate, syncData } from '../actions/record';
 
 const mapStateToProps = state => {
   return {
     currentDate: state.records.currentDate,
     records: state.records.records.filter(r => {
-      return moment(r.date, 'DD/MM/YYYY').isSame(moment(state.records.currentDate, 'DD/MM/YYYY'), 'day');
-    })
+      return moment(r.date, 'YYYY/MM/DD').isSame(moment(state.records.currentDate, 'YYYY/MM/DD'), 'day');
+    }),
+    user: state.records.user
   }
 };
 
@@ -274,7 +289,8 @@ const mapDispatchToProps = dispatch => {
   return {
     remove: (key) => dispatch(removeRecord(key)),
     set: (key) => dispatch(setRecord(key)),
-    setDate: (date) => dispatch(setDate(date))
+    setDate: (date) => dispatch(setDate(date)),
+    syncData: () => dispatch(syncData())
   }
 };
 

@@ -10,7 +10,7 @@ export default
     borderBottomColor: colors.color02,
     padding: 20,
     paddingLeft: 15,
-    backgroundColor: '#CCC'
+    backgroundColor: '#FFFFFF'
   },
   TimeRecordRowTotalTime: {
     paddingLeft: 15
@@ -35,7 +35,7 @@ export default
     padding: 8
   },
   FieldsetRow: {
-   height: 50
+   height: 60
   },
   FieldsetGroup: {
     flex: 1,
@@ -52,16 +52,18 @@ export default
     alignItems: 'center',
     padding: 15,
     marginBottom: 10,
-    backgroundColor: colors.color05
+    backgroundColor: colors.color06
   },
   TimeRecordDetailTotalTime: {
-    marginRight: 7
+    marginRight: 7,
+    color: colors.color01
   },
   TimeRecordDetailBreakDuration: {
     marginLeft: 7,
     padding: 5,
     borderColor: colors.color04,
     borderWidth: 1,
+    color: colors.color01
   },
   Title01: {
     fontSize: 24
@@ -72,5 +74,8 @@ export default
   Button: {
     backgroundColor: colors.color02,
     color: colors.color01
+  },
+  SyncedData: {
+    backgroundColor: colors.color07,
   }
 };

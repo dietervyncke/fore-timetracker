@@ -4,6 +4,7 @@ const color03 = '#041735';
 const color04 = '#bd241f';
 const color05 = '#959595';
 const color06 = '#16376d';
+const color07 = '#406d2b';
 
 export default {
   color01,
@@ -12,6 +13,7 @@ export default {
   color04,
   color05,
   color06,
+  color07,
   tabIconDefault: '#ccc',
   tabIconSelected: color03,
   tabBar: '#fefefe',
