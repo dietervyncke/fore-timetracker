@@ -14,8 +14,6 @@ const HomeStack = createStackNavigator({
   TimeRecord: {screen: TimeRecordScreen},
   BarcodeScanner: {screen: BarcodeScanner},
   Settings: {screen: SettingsScreen}
-}, {
-  // initialRouteName: 'Settings'
 });
 
 HomeStack.navigationOptions = {

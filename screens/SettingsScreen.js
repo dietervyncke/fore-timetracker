@@ -16,6 +16,7 @@ class SettingsScreen extends React.Component {
 
   state = {
     user: {},
+    password: '',
     isAuthenticated: false,
     isDateTimePickerVisible: false,
     activeDateTimeValue: new Date(),
@@ -53,7 +54,7 @@ class SettingsScreen extends React.Component {
   }
 
   isAuthenticated() {
-    if (this.state.user.password !== this.props.defaultPassword) {
+    if (this.state.password !== this.props.defaultPassword) {
       return;
     }
 
@@ -62,6 +63,10 @@ class SettingsScreen extends React.Component {
 
   goBack() {
     this.props.navigation.navigate('Home');
+  }
+
+  onUpdatePassword(password) {
+    this.setState({password: password});
   }
 
   onUpdateInputField(property, value) {
@@ -175,7 +180,7 @@ class SettingsScreen extends React.Component {
             <View style={{flex: 1}}>
               <Input
                   containerStyle={{flex: 1}}
-                  onChangeText={(password) => this.onUpdateInputField('password', password)}
+                  onChangeText={(password) => this.onUpdatePassword(password)}
                   placeholder="Password"
               />
               <View style={{flexDirection: 'row', justifyContent: 'center'}}>
@@ -208,9 +213,8 @@ class SettingsScreen extends React.Component {
 import { connect } from 'react-redux';
 import colors from "../constants/Colors";
 import { updateUser } from "../actions/user";
-import moment from "./TimeRecordScreen";
 import DateTimePicker from "./DateTimePicker";
-import {getFormattedHoursAndMinutes} from "../util/time";
+import { getFormattedHoursAndMinutes } from "../util/time";
 
 const mapStateToProps = state => {
   return {
@@ -220,7 +224,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
-    updateUser: (user) => dispatch(updateUser(user))
+    updateUser: (user) => dispatch(updateUser(user)),
   }
 };
 

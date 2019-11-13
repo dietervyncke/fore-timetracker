@@ -17,7 +17,6 @@ let initialEndTime = moment(initialStartTime).add(15, 'minutes');
 
 const initialState = {
   user: {
-    password: '',
     code: '',
     shortBreaks: [
         '09:00',
