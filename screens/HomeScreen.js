@@ -257,7 +257,7 @@ class HomeScreen extends Component
         </View>
 
         <Button style={{marginTop: 25}} color={colors.color03} title="Send email data" onPress={() => this.exportData()}
-                buttonStyle={{backgroundColor: colors.color06, borderRadius: 0, padding: 10}}
+                buttonStyle={{backgroundColor: colors.color06, borderRadius: 0, padding: 10}} disabled={!this.props.records.length}
         />
 
         <DateTimePicker

@@ -4,7 +4,7 @@ import { ExportToCsv } from "export-to-csv";
 async function convertDataToCsv(file, data, headers = []) {
     let fileName = file;
     let csvContent = exportCsvFile(data, headers);
-    const fileUri = FileSystem.documentDirectory+fileName;
+    const fileUri = FileSystem.documentDirectory+fileName.replace(' ', '-');
 
     return writeFile(csvContent, fileUri).then(() => {
         return getFileInfo(fileUri).then(file => {
@@ -30,10 +30,8 @@ function exportCsvFile(objects, headers) {
         quoteStrings: '',
         decimalSeparator: '.',
         showLabels: true,
-        showTitle: false,
         useTextFile: false,
         useBom: true,
-        useKeysAsHeaders: false,
         headers: headers
     };
     const csvExporter = new ExportToCsv(options);
