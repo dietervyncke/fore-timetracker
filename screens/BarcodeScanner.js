@@ -3,6 +3,7 @@ import { Text, View, StyleSheet, Button } from 'react-native';
 import * as Permissions from 'expo-permissions';
 
 import { BarCodeScanner } from 'expo-barcode-scanner';
+import { Audio } from 'expo-av';
 
 export default class BarcodeScannerExample extends React.Component {
 
@@ -48,7 +49,15 @@ export default class BarcodeScannerExample extends React.Component {
     );
   }
 
-  handleBarCodeScanned = ({ type, data }) => {
+  handleBarCodeScanned = async ({ type, data }) => {
+
+    const soundObject = new Audio.Sound();
+
+    try {
+      await soundObject.loadAsync(require('../assets/sounds/beep.mp3'));
+      await soundObject.playAsync();
+    } catch (error) {}
+
     this.setState({ scanned: true });
     this.props.navigation.navigate('TimeRecord', {url: data});
   };

@@ -14,10 +14,8 @@ const HomeStack = createStackNavigator({
   TimeRecord: {screen: TimeRecordScreen},
   BarcodeScanner: {screen: BarcodeScanner},
   Settings: {screen: SettingsScreen}
+}, {
+  headerMode: 'screen'
 });
-
-HomeStack.navigationOptions = {
-  tabBarLabel: 'Home'
-};
 
 export default createAppContainer(HomeStack);

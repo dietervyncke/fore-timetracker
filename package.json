@@ -16,6 +16,7 @@
     "expo": "^33.0.0",
     "expo-asset": "^6.0.0",
     "expo-barcode-scanner": "^5.0.1",
+    "expo-constants": "~5.0.1",
     "expo-file-system": "^5.0.1",
     "expo-font": "^5.0.1",
     "expo-mail-composer": "^5.0.1",
@@ -33,7 +34,7 @@
     "redux": "^4.0.1",
     "redux-persist": "^5.10.0",
     "uuid": "^3.3.3",
-    "expo-constants": "~5.0.1"
+    "expo-av": "~5.0.2"
   },
   "devDependencies": {
     "babel-preset-expo": "^5.0.0",

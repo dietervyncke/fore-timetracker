@@ -7,7 +7,7 @@ import {
   getFormattedTimeInterval,
   addTime,
   subtractTime,
-  checkTimeOverlap, getUtcHoursMinutes, getTimeInterval
+  getUtcHoursMinutes, getTimeInterval
 } from '../util/time';
 import 'moment-round';
 import moment from 'moment';
@@ -42,8 +42,26 @@ class TimeRecordScreen extends React.Component
   }
 
   componentDidMount() {
+
+    let record = this.props.record;
+    let previousRecord = this.props.records[this.props.records.length-1] ?? null;
+
+    if (! this.props.record.key) {
+      record = Object.assign(this.props.record, {
+        orderNumber: ''
+      });
+
+      if (previousRecord) {
+        record.startTime = previousRecord.endTime;
+        record.endTime = previousRecord.endTime;
+      } else {
+        record.startTime = getFormattedHoursAndMinutes();
+        record.endTime = getFormattedHoursAndMinutes();
+      }
+    }
+
     this.setState({
-      record: this.props.record,
+      record: record,
       activeBreakDuration: this.props.record.breakDuration
     });
   }
@@ -73,8 +91,7 @@ class TimeRecordScreen extends React.Component
   }
 
   handleDatePicked(date) {
-    let validatedDate = this.validateInputField(date);
-    this.onUpdateInputField(this.state.activeDateTimeProperty, getFormattedHoursAndMinutes(validatedDate));
+    this.onUpdateInputField(this.state.activeDateTimeProperty, getFormattedHoursAndMinutes(date));
     this.getTotalBreakDuration();
     this.hideDateTimePicker();
   }
@@ -85,7 +102,7 @@ class TimeRecordScreen extends React.Component
   }
 
   incrementBreakDuration() {
-    if (getTimeInterval(this.state.record.startTime, this.state.record.endTime, this.state.record.breakDuration+15) > (this.state.activeBreakDuration+30)) {
+    if (getTimeInterval(this.state.record.startTime, this.state.record.endTime, this.state.record.breakDuration) > this.state.activeBreakDuration) {
       this.handleBreakDuration(this.state.activeBreakDuration+15);
     }
   }
@@ -122,6 +139,12 @@ class TimeRecordScreen extends React.Component
 
   onPressSaveRow() {
 
+    if (! this.validateTime(this.state.record.endTime)) {
+      this.correctTime('endTime');
+      alert('Your time will be updated');
+      return;
+    }
+
     let isValid = true;
 
     this.inputFields.forEach(input => {
@@ -131,23 +154,7 @@ class TimeRecordScreen extends React.Component
     });
 
     if (!isValid) {
-      alert('Can\'t submit, fill in all required fields');
-      return;
-    }
-
-    /**
-     * Check for time overlap
-     */
-    let dateRanges = this.props.records;
-
-    if (this.props.record.key === null) {
-      dateRanges = this.props.records.concat(this.props.record);
-    }
-
-    let result = checkTimeOverlap(dateRanges);
-
-    if (result.overlap) {
-      alert('Can\'t submit, there is a time overlap.');
+      alert('Can\'t submit, incorrect order number');
       return;
     }
 
@@ -160,17 +167,13 @@ class TimeRecordScreen extends React.Component
     this.props.navigation.goBack();
   };
 
-  validateInputField(date) {
+  validateTime(date) {
+    return moment(date, 'HH:mm') >= moment(this.state.record.startTime, 'HH:mm');
+  }
 
-    if (this.state.activeDateTimeProperty === 'endTime' && date <= moment(this.state.record.startTime, 'HH:mm')) {
-      return addTime(this.state.record.startTime, 15, 'minutes');
-    }
-
-    if (this.state.activeDateTimeProperty === 'startTime' && date >= moment(this.state.record.endTime, 'HH:mm')) {
-      return subtractTime(this.state.record.endTime, 15, 'minutes');
-    }
-
-    return date;
+  correctTime(property) {
+      let time = addTime(this.state.record.startTime, 15, 'minutes');
+      this.onUpdateInputField(property, getFormattedHoursAndMinutes(time));
   }
 
   onUpdateInputField(property, value) {
@@ -200,7 +203,7 @@ class TimeRecordScreen extends React.Component
                   containerStyle={{flex: 1}}
                   onChangeText={(orderNumber) => this.onUpdateInputField('orderNumber', orderNumber)}
                   placeholder="Order number"
-                  pattern={'([a-zA-Z0-9]{6})-([a-zA-Z0-9]{4})'}
+                  pattern={'([a-zA-Z0-9]{6})-((V|P|I|M|A|D)|[0-9]{1})([0-9]{3})'}
                   value={this.state.record.orderNumber}
                 />
                 <Button title="Scan" buttonStyle={{backgroundColor: colors.color06, borderRadius: 0}} onPress={() => {this.props.navigation.navigate('BarcodeScanner')}}/>

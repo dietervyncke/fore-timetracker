@@ -11,7 +11,7 @@ class SettingsScreen extends React.Component {
   };
 
   static defaultProps = {
-    'defaultPassword': 'test'
+    'defaultPassword': '9999'
   };
 
   state = {

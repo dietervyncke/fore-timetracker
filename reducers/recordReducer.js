@@ -8,12 +8,8 @@ import {
   UPDATE_USER
 } from '../actions/types';
 
-import moment from 'moment';
 import { getFormattedDate, getFormattedHoursAndMinutes, sortDates } from "../util/time";
 import v4 from 'uuid/v4';
-
-let initialStartTime = moment().round(15, 'minutes');
-let initialEndTime = moment(initialStartTime).add(15, 'minutes');
 
 const initialState = {
   user: {
@@ -31,10 +27,10 @@ const initialState = {
   currentDate: getFormattedDate(new Date()),
   record: {
     key: null,
-    orderNumber: '',
+    orderNumber: null,
     date: getFormattedDate(new Date()),
-    startTime: getFormattedHoursAndMinutes(initialStartTime),
-    endTime: getFormattedHoursAndMinutes(initialEndTime),
+    startTime: getFormattedHoursAndMinutes(),
+    endTime: getFormattedHoursAndMinutes(),
     breakDuration: 0,
     description: '',
     isSynced: false

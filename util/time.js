@@ -1,8 +1,9 @@
 import moment from 'moment';
 
-export const getFormattedHoursAndMinutes = (time) => moment(time).format('HH:mm');
+export const getFormattedHoursAndMinutes = (time = moment().round(15, 'minutes')) => moment(time).format('HH:mm');
 export const getUtcHoursMinutes = (time) => moment.utc(time, 'HH:mm');
 export const getFormattedDate = (dateTime) => moment(dateTime).format('YYYY/MM/DD');
+export const getFormattedDisplayDate = (dateTime) => moment(new Date(dateTime)).format('dd DD/MM/YYYY');
 
 export const getTimeInterval = (startTime, endTime, breakDuration = 0) => {
   const start = getUtcHoursMinutes(startTime);

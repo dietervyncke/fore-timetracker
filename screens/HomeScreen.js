@@ -1,39 +1,58 @@
-import React, { Component } from 'react';
+import React, {Component} from 'react';
 
-import { getFormattedTimeInterval, getFormattedDate, subtractDays, addDays, timeStringToSec, formatTime } from '../util/time';
+import {
+  getFormattedTimeInterval,
+  getFormattedDate,
+  subtractDays,
+  addDays,
+  timeStringToSec,
+  formatTime,
+  getFormattedDisplayDate, checkTimeOverlap
+} from '../util/time';
 import typography from '../constants/Typography';
 import colors from '../constants/Colors';
 import components from '../constants/Components';
 import moment from 'moment';
 
-import { convertDataToCsv } from "../util/export";
-import { sendMail } from "../util/send";
+import {ScreenOrientation} from 'expo';
+
+import {convertDataToCsv} from "../util/export";
+import {sendMail} from "../util/send";
 
 import DateTimePicker from './DateTimePicker';
 
-import { Text, View, Alert, TouchableHighlight } from 'react-native';
-import { Icon, Button } from 'react-native-elements';
-import { SwipeListView } from 'react-native-swipe-list-view';
+import {Text, View, Alert, TouchableHighlight} from 'react-native';
+import {Icon, Button} from 'react-native-elements';
+import {SwipeListView} from 'react-native-swipe-list-view';
 
 class HomeScreen extends Component
 {
-  static navigationOptions = ({ navigation }) => {
+  state = {
+    isDateTimePickerVisible: false,
+    activeDateTimeProperty: null,
+    dayTotal: 0,
+    isSynced: false,
+    orientation: ScreenOrientation.Orientation.PORTRAIT
+  };
+
+  static navigationOptions = ({navigation}) => {
     return {
       title: 'Time clock',
       headerLeft: () => (
           <Icon type="feather" name="settings" color={colors.color06}
                 onPress={() => navigation.push('Settings')} iconStyle={{paddingLeft: 10}}
           />
-      ),
+      )
     }
   };
 
-  state = {
-    isDateTimePickerVisible: false,
-    activeDateTimeProperty: null,
-    dayTotal: 0,
-    isSynced: false
-  };
+  constructor(props) {
+    super(props);
+
+    ScreenOrientation.addOrientationChangeListener(e => {
+      this.setState({orientation: e.orientationInfo.orientation});
+    });
+  }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
     if (prevProps.records !== this.props.records) {
@@ -51,9 +70,14 @@ class HomeScreen extends Component
   componentDidMount() {
     let dayTotal = this.getDayTotal();
     let isSynced = this.isDataSynced();
+
+    ScreenOrientation.getOrientationAsync().then(response => {
+      this.setState({orientation: response.orientation});
+    });
+
     this.setState({
       dayTotal: dayTotal,
-      isSynced: isSynced
+      isSynced: isSynced,
     });
   }
 
@@ -62,7 +86,7 @@ class HomeScreen extends Component
 
     this.props.records.forEach(record => {
       let diff = getFormattedTimeInterval(record.startTime, record.endTime, record.breakDuration);
-      dayTotal = formatTime(timeStringToSec(dayTotal)+timeStringToSec(diff));
+      dayTotal = formatTime(timeStringToSec(dayTotal) + timeStringToSec(diff));
     });
 
     return dayTotal;
@@ -76,10 +100,10 @@ class HomeScreen extends Component
   }
 
   /**
-  * DateTimePicker methods
-  **/
+   * DateTimePicker methods
+   **/
   showDateTimePicker() {
-    this.setState({ isDateTimePickerVisible: true });
+    this.setState({isDateTimePickerVisible: true});
   }
 
   hideDateTimePicker() {
@@ -109,15 +133,29 @@ class HomeScreen extends Component
     this.props.setDate(getFormattedDate(nextDay));
   }
 
+  setCurrentDay() {
+    this.props.setDate(getFormattedDate(Date.now()));
+  }
+
   /**
    *  Export and send mail
    **/
   exportData() {
 
+    /**
+     * Check for time overlap
+     */
+    let result = checkTimeOverlap(this.props.records);
+
+    if (result.overlap) {
+      alert('Can\'t submit, there is a time overlap.');
+      return;
+    }
+
     let data = this.prepareDataForExport(Object.assign({}, {records: this.props.records}, {code: this.props.user.code}));
     let headers = ['Date - Time', 'Werkorder', 'Van', 'Tot', 'Opmerking', 'Schaft 15\'', 'Schaft 30\'', 'Totaal', 'Personeelscode'];
 
-    convertDataToCsv(this.props.user.emailSubject+'.csv', data, headers).then(file => {
+    convertDataToCsv(this.props.user.emailSubject + '.csv', data, headers).then(file => {
 
       sendMail(
           this.props.user.emailSubject,
@@ -138,8 +176,8 @@ class HomeScreen extends Component
   prepareDataForExport(data) {
     return data.records.map(record => {
 
-      let longBreak = Math.floor(record.breakDuration/30);
-      let shortBreak = (record.breakDuration % 30)/15;
+      let longBreak = Math.floor(record.breakDuration / 30);
+      let shortBreak = (record.breakDuration % 30) / 15;
 
       return {
         'date': record.date,
@@ -158,37 +196,44 @@ class HomeScreen extends Component
   getRenderedTimeRecord(record) {
 
     let breakDuration;
+    let description;
 
     if (record.breakDuration > 0) {
       breakDuration = <Text style={{marginRight: 15}}>{record.breakDuration}min</Text>
     }
 
+    if (record.description && this.state.orientation === ScreenOrientation.Orientation.LANDSCAPE) {
+      description = <Text style={{marginRight: 15}}>{record.description.substring(0, 30) + '...'}</Text>
+    }
+
     return (
-      <TouchableHighlight onPress={this.navigateToRecordDetail.bind(this, record.key)}>
-        <View style={components.TimeRecordRow}>
+        <TouchableHighlight onPress={this.navigateToRecordDetail.bind(this, record.key)}>
+          <View style={components.TimeRecordRow}>
 
-          <View style={components.TimeRecordRowMain}>
+            <View style={components.TimeRecordRowMain}>
 
-            <View style={components.TimeRecordRowHeader}>
-              <Text>{record.orderNumber}</Text>
+              <View style={components.TimeRecordRowHeader}>
+                <Text>{record.orderNumber}</Text>
 
-              <View style={components.TimeRecordRowTimeDetail}>
-                {breakDuration}
-                <Text>{record.startTime} - {record.endTime}</Text>
+                <Text>{description}</Text>
+
+                <View style={components.TimeRecordRowTimeDetail}>
+                  {breakDuration}
+                  <Text>{record.startTime} - {record.endTime}</Text>
+                </View>
+
               </View>
 
             </View>
 
-          </View>
+            <View style={components.TimeRecordRowTotalTime}>
+              <Text>
+                {getFormattedTimeInterval(record.startTime, record.endTime, record.breakDuration)}
+              </Text>
+            </View>
 
-          <View style={components.TimeRecordRowTotalTime}>
-            <Text>
-              {getFormattedTimeInterval(record.startTime, record.endTime, record.breakDuration)}
-            </Text>
           </View>
-
-        </View>
-      </TouchableHighlight>
+        </TouchableHighlight>
     );
   }
 
@@ -197,83 +242,113 @@ class HomeScreen extends Component
     let dayTotal = null;
     let timeRecords = null;
     let currentDate = null;
+    let sendDataButton = null;
 
     if (this.props.currentDate) {
-      currentDate = this.props.currentDate;
+      currentDate = getFormattedDisplayDate(this.props.currentDate);
     }
 
     if (this.props.records.length) {
 
       timeRecords = (
-        <SwipeListView
-          data={this.props.records}
-          keyExtractor={(item, index) => index.toString()}
-          renderItem={({item}) => this.getRenderedTimeRecord(item)}
-          renderHiddenItem={ (data) => (
-            <View style={{justifyContent: 'flex-end', flex: 1, flexDirection: 'row', alignItems: 'center'}}>
-              <Icon name="x" type="feather" color={colors.color06} size={30}
-                    iconStyle={{paddingRight: 10}}
-                    onPress={() => {this.props.remove(data.item.key)}}/>
-            </View>
-          )}
-          rightOpenValue={-50}
-        />
+          <SwipeListView
+              data={this.props.records}
+              keyExtractor={(item, index) => index.toString()}
+              renderItem={({item}) => this.getRenderedTimeRecord(item)}
+              renderHiddenItem={(data) => (
+                  <View style={{justifyContent: 'flex-end', flex: 1, flexDirection: 'row', alignItems: 'center'}}>
+                    <Icon name="x" type="feather" color={colors.color06} size={30}
+                          iconStyle={{paddingRight: 10}}
+                          onPress={() => {
+                            this.props.remove(data.item.key)
+                          }}/>
+                  </View>
+              )}
+              rightOpenValue={-50}
+              disableHiddenLayoutCalculation={true}
+          />
       );
 
       dayTotal = (
           <Text>{this.state.dayTotal}</Text>
       );
+
+      if (this.state.orientation === ScreenOrientation.Orientation.PORTRAIT) {
+        sendDataButton = <Button style={{marginTop: 10}} color={colors.color03} title="Send email data"
+                                 onPress={() => this.exportData()}
+                                 buttonStyle={{backgroundColor: colors.color06, borderRadius: 0, padding: 10}}
+                                 disabled={!this.props.records.length}
+        />;
+      }
     }
 
     return (
 
-      <View style={{flex: 1}}>
+        <View style={{flex: 1, justifyContent: 'space-between'}}>
 
-        {/* Header */}
-        <View style={[{height: 75, flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}, this.state.isSynced ? components.SyncedData : '']}>
-            <Icon type="feather" name="chevron-left" color={colors.color06} onPress={() => {this.setPreviousDay()}} iconStyle={{paddingRight: 15}} />
-            <Text style={typography.title01} onPress={() => this.showDateTimePicker()}>
-              {currentDate}
-            </Text>
-          <Icon type="feather" name="chevron-right" color={colors.color06} onPress={() => {this.setNextDay()}} iconStyle={{paddingLeft: 15}} />
-        </View>
-
-        {/* Main Content */}
-        <View style={{flex: 5}}>
-          <View>
-            {timeRecords}
+          {/* Header */}
+          <View style={{
+            justifyContent: 'space-between',
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginLeft: 15,
+            marginRight: 15
+          }}>
+            <View style={[{
+              height: 75,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }, this.state.isSynced ? components.SyncedData : '']}>
+              <Text style={typography.title01} onPress={() => this.showDateTimePicker()}>
+                {currentDate}
+              </Text>
+            </View>
+            <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
+              <Icon type="feather" name="chevron-left" color={colors.color06} onPress={() => {
+                this.setPreviousDay()
+              }} iconStyle={{paddingRight: 15}}/>
+              <Icon type="feather" name="sun" color={colors.color06} onPress={() => {
+                this.setCurrentDay()
+              }}/>
+              <Icon type="feather" name="chevron-right" color={colors.color06} onPress={() => {
+                this.setNextDay()
+              }} iconStyle={{paddingLeft: 15}}/>
+            </View>
           </View>
-          <View style={{flex: 1, alignItems: 'flex-end', paddingRight: 20, paddingTop: 10}}>
-            {dayTotal}
-          </View>
-        </View>
 
-        {/* Footer */}
-        <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-          <View style={{marginTop: 25}}>
+          {/* Main Content */}
+          <View style={{flex: 1}}>
+            <View>
+              {timeRecords}
+            </View>
+            <View style={{alignItems: 'flex-end', paddingRight: 20, paddingTop: 10}}>
+              {dayTotal}
+            </View>
+          </View>
+
+          {/* Footer */}
+          <View style={{alignItems: 'center', justifyContent: 'center', marginTop: 20, marginBottom: 10}}>
             <Icon name="plus-circle" type="feather" color={colors.color06} size={30}
                   onPress={this.navigateToRecordDetail.bind(this, null)}/>
           </View>
+
+          {sendDataButton}
+
+          <DateTimePicker
+              date={moment(this.props.currentDate, 'YYYY/MM/DD').toDate()}
+              isVisible={this.state.isDateTimePickerVisible}
+              onConfirm={this.handleDatePicked.bind(this)}
+              onCancel={this.hideDateTimePicker.bind(this)}
+          />
+
         </View>
-
-        <Button style={{marginTop: 25}} color={colors.color03} title="Send email data" onPress={() => this.exportData()}
-                buttonStyle={{backgroundColor: colors.color06, borderRadius: 0, padding: 10}} disabled={!this.props.records.length}
-        />
-
-        <DateTimePicker
-            date={moment(this.props.currentDate, 'YYYY/MM/DD').toDate()}
-            isVisible={this.state.isDateTimePickerVisible}
-            onConfirm={this.handleDatePicked.bind(this)}
-            onCancel={this.hideDateTimePicker.bind(this)}
-        />
-
-      </View>
     );
   }
 }
 
-import { connect } from 'react-redux';
-import { removeRecord, setRecord, setDate, syncData } from '../actions/record';
+import {connect} from 'react-redux';
+import {removeRecord, setRecord, setDate, syncData} from '../actions/record';
 
 const mapStateToProps = state => {
   return {

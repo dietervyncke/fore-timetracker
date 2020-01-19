@@ -1,7 +1,7 @@
 import React from 'react';
 import { PersistGate } from 'redux-persist/integration/react'
 import { Platform, StatusBar, StyleSheet, View } from 'react-native';
-import { AppLoading } from 'expo';
+import {AppLoading, ScreenOrientation} from 'expo';
 import { Asset } from 'expo-asset';
 import * as Font from 'expo-font';
 import * as Icon from '@expo/vector-icons';
@@ -15,7 +15,31 @@ export default class App extends React.Component {
     isLoadingComplete: false
   };
 
+  constructor(props) {
+    super(props);
+
+    ScreenOrientation.addOrientationChangeListener(e => {
+      this.setStatusBar(e.orientationInfo.orientation);
+    });
+  }
+
+  componentDidMount() {
+    ScreenOrientation.getOrientationAsync().then(response => {
+      this.setStatusBar(response.orientation);
+    });
+  }
+
+  setStatusBar(orientation) {
+    if (orientation === ScreenOrientation.Orientation.LANDSCAPE) {
+      StatusBar.setHidden(true);
+      return;
+    }
+
+    StatusBar.setHidden(false);
+  }
+
   render() {
+
     if (!this.state.isLoadingComplete && !this.props.skipLoadingScreen) {
       return (
         <AppLoading
