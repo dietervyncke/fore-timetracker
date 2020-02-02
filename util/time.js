@@ -1,6 +1,7 @@
 import moment from 'moment';
 
-export const getFormattedHoursAndMinutes = (time = moment().round(15, 'minutes')) => moment(time).format('HH:mm');
+export const getFormattedRoundHoursAndMinutes = (time = moment().round(15, 'minutes')) => moment(time).format('HH:mm');
+export const getFormattedHoursAndMinutes = (time = moment()) => moment(time).format('HH:mm');
 export const getUtcHoursMinutes = (time) => moment.utc(time, 'HH:mm');
 export const getFormattedDate = (dateTime) => moment(dateTime).format('YYYY/MM/DD');
 export const getFormattedDisplayDate = (dateTime) => moment(new Date(dateTime)).format('dd DD/MM/YYYY');
@@ -29,13 +30,13 @@ export const pad = (num) => {
   return num.toString().padStart(2,'0');
 };
 
-export const formatTime = (seconds) => {
-  return [pad(Math.floor(seconds/60)%60),
-    pad(seconds%60),
+export const formatTime = (minutes) => {
+  return [pad(Math.floor(minutes/60)%60),
+    pad(minutes%60),
   ].join(":");
 };
 
-export const timeStringToSec = (timeString) => {
+export const timeStringToMinutes = (timeString) => {
   let parts = timeString.split(":");
   return (parts[0] * 60) + (+parts[1]);
 };

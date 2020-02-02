@@ -1,27 +1,31 @@
 import React, {Component} from 'react';
 
+import {ScreenOrientation} from 'expo';
+
 import {
   getFormattedTimeInterval,
   getFormattedDate,
   subtractDays,
   addDays,
-  timeStringToSec,
+  timeStringToMinutes,
   formatTime,
-  getFormattedDisplayDate, checkTimeOverlap
+  getFormattedDisplayDate,
+  checkTimeOverlap,
+  addTime,
+  getFormattedHoursAndMinutes
 } from '../util/time';
+
 import typography from '../constants/Typography';
 import colors from '../constants/Colors';
 import components from '../constants/Components';
 import moment from 'moment';
 
-import {ScreenOrientation} from 'expo';
-
-import {convertDataToCsv} from "../util/export";
-import {sendMail} from "../util/send";
+import { convertDataToCsv } from "../util/export";
+import { sendMail } from "../util/send";
 
 import DateTimePicker from './DateTimePicker';
 
-import {Text, View, Alert, TouchableHighlight} from 'react-native';
+import {Text, View, Alert, TouchableHighlight } from 'react-native';
 import {Icon, Button} from 'react-native-elements';
 import {SwipeListView} from 'react-native-swipe-list-view';
 
@@ -46,6 +50,10 @@ class HomeScreen extends Component
     }
   };
 
+  /**
+   *
+   * @param props
+   */
   constructor(props) {
     super(props);
 
@@ -54,6 +62,12 @@ class HomeScreen extends Component
     });
   }
 
+  /**
+   *
+   * @param prevProps
+   * @param prevState
+   * @param snapshot
+   */
   componentDidUpdate(prevProps, prevState, snapshot) {
     if (prevProps.records !== this.props.records) {
       let dayTotal = this.getDayTotal();
@@ -67,6 +81,9 @@ class HomeScreen extends Component
     }
   }
 
+  /**
+   *
+   */
   componentDidMount() {
     let dayTotal = this.getDayTotal();
     let isSynced = this.isDataSynced();
@@ -81,17 +98,32 @@ class HomeScreen extends Component
     });
   }
 
+  /**
+   *
+   */
+  componentWillUnmount() {
+    ScreenOrientation.removeOrientationChangeListeners();
+  }
+
+  /**
+   *
+   * @returns {string}
+   */
   getDayTotal() {
     let dayTotal = '00:00';
 
     this.props.records.forEach(record => {
       let diff = getFormattedTimeInterval(record.startTime, record.endTime, record.breakDuration);
-      dayTotal = formatTime(timeStringToSec(dayTotal) + timeStringToSec(diff));
+      dayTotal = formatTime(timeStringToMinutes(dayTotal) + timeStringToMinutes(diff));
     });
 
     return dayTotal;
   }
 
+  /**
+   *
+   * @returns {boolean}
+   */
   isDataSynced() {
     if (this.props.records.length) {
       let unSyncedData = this.props.records.find(r => r.isSynced === false);
@@ -106,6 +138,9 @@ class HomeScreen extends Component
     this.setState({isDateTimePickerVisible: true});
   }
 
+  /**
+   *
+   */
   hideDateTimePicker() {
     this.setState({
       isDateTimePickerVisible: false,
@@ -113,26 +148,43 @@ class HomeScreen extends Component
     });
   }
 
+  /**
+   *
+   * @param date
+   */
   handleDatePicked(date) {
     this.props.setDate(getFormattedDate(date));
     this.hideDateTimePicker();
   }
 
+  /**
+   *
+   * @param key
+   */
   navigateToRecordDetail(key) {
     this.props.set(key);
     this.props.navigation.navigate('TimeRecord');
   }
 
+  /**
+   *
+   */
   setPreviousDay() {
     let prevDay = subtractDays(this.props.currentDate);
     this.props.setDate(getFormattedDate(prevDay));
   }
 
+  /**
+   *
+   */
   setNextDay() {
     let nextDay = addDays(this.props.currentDate);
     this.props.setDate(getFormattedDate(nextDay));
   }
 
+  /**
+   *
+   */
   setCurrentDay() {
     this.props.setDate(getFormattedDate(Date.now()));
   }
@@ -142,18 +194,42 @@ class HomeScreen extends Component
    **/
   exportData() {
 
-    /**
-     * Check for time overlap
-     */
+    if (! this.state.isSynced) {
+      this.export();
+      return;
+    }
+
+    Alert.alert('Are you sure?', 'This data is already synced, send it again?', [
+      {
+        text: 'Export', onPress: () => this.export()
+      },
+      {
+        text: 'Cancel',
+        onPress: () => {},
+        style: 'cancel',
+      },
+    ]);
+  }
+
+  /**
+   *
+   */
+  export() {
+
     let result = checkTimeOverlap(this.props.records);
 
     if (result.overlap) {
-      alert('Can\'t submit, there is a time overlap.');
+      Alert.alert('Woops', 'Can\'t submit, there is a time overlap.');
       return;
     }
 
     let data = this.prepareDataForExport(Object.assign({}, {records: this.props.records}, {code: this.props.user.code}));
     let headers = ['Date - Time', 'Werkorder', 'Van', 'Tot', 'Opmerking', 'Schaft 15\'', 'Schaft 30\'', 'Totaal', 'Personeelscode'];
+
+    if (! data.length) {
+      Alert.alert('Woops', 'No data to export');
+      return;
+    }
 
     convertDataToCsv(this.props.user.emailSubject + '.csv', data, headers).then(file => {
 
@@ -166,33 +242,80 @@ class HomeScreen extends Component
 
         if (response.status === 'sent') {
           this.props.syncData();
-          Alert.alert('Success ', 'Email sent successfully');
+          Alert.alert('Success', 'Email sent successfully');
         }
 
       });
     });
   }
 
+  /**
+   *
+   */
   prepareDataForExport(data) {
-    return data.records.map(record => {
 
-      let longBreak = Math.floor(record.breakDuration / 30);
-      let shortBreak = (record.breakDuration % 30) / 15;
+    let dataCopy = data.records.slice();
 
-      return {
-        'date': record.date,
-        'orderNumber': record.orderNumber,
-        'startTime': record.startTime,
-        'endTime': record.endTime,
-        'description': record.description,
-        'shortBreaks': shortBreak,
-        'longBreaks': longBreak,
-        'total': getFormattedTimeInterval(record.startTime, record.endTime, record.breakDuration),
-        'userCode': data.code
-      };
+    dataCopy.forEach((record, index, dataCopy) => {
+
+      let orderNumbers = record.orderNumber.trim().split('\n');
+
+      if (orderNumbers.length > 1) {
+
+        let extraRows = [];
+        let rowTotal = timeStringToMinutes(getFormattedTimeInterval(record.startTime, record.endTime, record.breakDuration)) / orderNumbers.length;
+
+        let endTime = getFormattedHoursAndMinutes(addTime(record.startTime, rowTotal, 'minutes'));
+        let startTime = record.startTime;
+
+        for (let i = 0; i < orderNumbers.length; i++) {
+
+          if (i !== 0) {
+            endTime = getFormattedHoursAndMinutes(addTime(startTime, rowTotal, 'minutes'));
+          }
+
+          extraRows.push({
+            orderNumber: orderNumbers[i].trim(),
+            date: record.date,
+            startTime: startTime,
+            endTime: endTime,
+            breakDuration: 0,
+            description: record.description
+          });
+
+          startTime = endTime;
+
+        }
+
+        dataCopy.splice(index, 1, ...extraRows);
+      }
+
     });
+
+    return dataCopy
+        .filter(record => timeStringToMinutes(getFormattedTimeInterval(record.startTime, record.endTime, record.breakDuration)) > 0)
+        .map(record => {
+
+          let longBreak = Math.floor(record.breakDuration / 30);
+          let shortBreak = (record.breakDuration % 30) / 15;
+
+          return {
+            'date': record.date,
+            'orderNumber': record.orderNumber,
+            'startTime': record.startTime,
+            'endTime': record.endTime,
+            'description': record.description,
+            'shortBreaks': shortBreak,
+            'longBreaks': longBreak,
+            'total': getFormattedTimeInterval(record.startTime, record.endTime, record.breakDuration),
+            'userCode': data.code
+          };
+        });
   }
 
+  /**
+   *
+   */
   getRenderedTimeRecord(record) {
 
     let breakDuration;
@@ -237,6 +360,9 @@ class HomeScreen extends Component
     );
   }
 
+  /**
+   *
+   */
   render() {
 
     let dayTotal = null;
@@ -274,7 +400,7 @@ class HomeScreen extends Component
       );
 
       if (this.state.orientation === ScreenOrientation.Orientation.PORTRAIT) {
-        sendDataButton = <Button style={{marginTop: 10}} color={colors.color03} title="Send email data"
+        sendDataButton = <Button style={{marginTop: 10}} color={colors.color03} title="Export data"
                                  onPress={() => this.exportData()}
                                  buttonStyle={{backgroundColor: colors.color06, borderRadius: 0, padding: 10}}
                                  disabled={!this.props.records.length}
@@ -287,19 +413,19 @@ class HomeScreen extends Component
         <View style={{flex: 1, justifyContent: 'space-between'}}>
 
           {/* Header */}
-          <View style={{
+          <View style={[{
             justifyContent: 'space-between',
             flexDirection: 'row',
             alignItems: 'center',
-            marginLeft: 15,
-            marginRight: 15
-          }}>
-            <View style={[{
+            paddingLeft: 15,
+            paddingRight: 15
+          }, this.state.isSynced ? components.SyncedData : '']}>
+            <View style={{
               height: 75,
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'center'
-            }, this.state.isSynced ? components.SyncedData : '']}>
+            }}>
               <Text style={typography.title01} onPress={() => this.showDateTimePicker()}>
                 {currentDate}
               </Text>

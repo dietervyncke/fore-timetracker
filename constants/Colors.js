@@ -4,7 +4,7 @@ const color03 = '#041735';
 const color04 = '#bd241f';
 const color05 = '#959595';
 const color06 = '#16376d';
-const color07 = '#406d2b';
+const color07 = '#679c33';
 
 export default {
   color01,

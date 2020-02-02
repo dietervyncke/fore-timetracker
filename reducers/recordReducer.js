@@ -8,7 +8,7 @@ import {
   UPDATE_USER
 } from '../actions/types';
 
-import { getFormattedDate, getFormattedHoursAndMinutes, sortDates } from "../util/time";
+import { getFormattedDate, getFormattedRoundHoursAndMinutes, sortDates } from "../util/time";
 import v4 from 'uuid/v4';
 
 const initialState = {
@@ -27,10 +27,10 @@ const initialState = {
   currentDate: getFormattedDate(new Date()),
   record: {
     key: null,
-    orderNumber: null,
+    orderNumber: '',
     date: getFormattedDate(new Date()),
-    startTime: getFormattedHoursAndMinutes(),
-    endTime: getFormattedHoursAndMinutes(),
+    startTime: getFormattedRoundHoursAndMinutes(),
+    endTime: getFormattedRoundHoursAndMinutes(),
     breakDuration: 0,
     description: '',
     isSynced: false

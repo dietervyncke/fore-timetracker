@@ -35,7 +35,7 @@ export default
     padding: 8
   },
   FieldsetRow: {
-   height: 60
+   minHeight: 60
   },
   FieldsetGroup: {
     flex: 1,
@@ -43,9 +43,9 @@ export default
     alignItems: 'center'
   },
   TimeRecordDetailSummary: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 20
   },
   TimeRecordDetailCalculation: {
     flexDirection: 'row',

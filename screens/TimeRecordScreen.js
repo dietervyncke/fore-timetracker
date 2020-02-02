@@ -1,12 +1,12 @@
 import React from 'react';
-import { View, TouchableWithoutFeedback } from 'react-native';
+import { View, TouchableWithoutFeedback, ScrollView, Alert } from 'react-native';
 import { Button, Input, Text, Icon } from 'react-native-elements';
+import { ScreenOrientation } from "expo";
 
 import {
-  getFormattedHoursAndMinutes,
+  getFormattedRoundHoursAndMinutes,
   getFormattedTimeInterval,
   addTime,
-  subtractTime,
   getUtcHoursMinutes, getTimeInterval
 } from '../util/time';
 import 'moment-round';
@@ -30,17 +30,29 @@ class TimeRecordScreen extends React.Component
     activeDateTimeProperty: null,
     activeBreakDuration: 0,
     hasCameraPermission: null,
-    scanned: false
+    scanned: false,
+    orientation: ScreenOrientation.Orientation.PORTRAIT
   };
 
+  /**
+   *
+   * @param props
+   */
   constructor(props) {
     super(props);
 
     this.inputFields = [];
     this.orderInput = React.createRef();
     this.inputFields.push(this.orderInput);
+
+    ScreenOrientation.addOrientationChangeListener(e => {
+      this.setState({orientation: e.orientationInfo.orientation});
+    });
   }
 
+  /**
+   *
+   */
   componentDidMount() {
 
     let record = this.props.record;
@@ -55,10 +67,14 @@ class TimeRecordScreen extends React.Component
         record.startTime = previousRecord.endTime;
         record.endTime = previousRecord.endTime;
       } else {
-        record.startTime = getFormattedHoursAndMinutes();
-        record.endTime = getFormattedHoursAndMinutes();
+        record.startTime = getFormattedRoundHoursAndMinutes();
+        record.endTime = getFormattedRoundHoursAndMinutes();
       }
     }
+
+    ScreenOrientation.getOrientationAsync().then(response => {
+      this.setState({orientation: response.orientation});
+    });
 
     this.setState({
       record: record,
@@ -66,10 +82,23 @@ class TimeRecordScreen extends React.Component
     });
   }
 
+  /**
+   *
+   * @param prevProps
+   * @param prevState
+   * @param snapshot
+   */
   componentDidUpdate(prevProps, prevState, snapshot) {
     if (prevProps.navigation.getParam('url') !== this.props.navigation.getParam('url')) {
-      this.onUpdateInputField('orderNumber', this.props.navigation.getParam('url'));
+      this.onUpdateInputField('orderNumber', (this.props.record.orderNumber ? this.props.record.orderNumber+'\n' : '')+this.props.navigation.getParam('url'));
     }
+  }
+
+  /**
+   *
+   */
+  componentWillUnmount() {
+    ScreenOrientation.removeOrientationChangeListeners();
   }
 
   /**
@@ -83,6 +112,9 @@ class TimeRecordScreen extends React.Component
     });
   }
 
+  /**
+   *
+   */
   hideDateTimePicker() {
     this.setState({
       isDateTimePickerVisible: false,
@@ -90,45 +122,76 @@ class TimeRecordScreen extends React.Component
     });
   }
 
+  /**
+   *
+   * @param date
+   */
   handleDatePicked(date) {
-    this.onUpdateInputField(this.state.activeDateTimeProperty, getFormattedHoursAndMinutes(date));
+    this.onUpdateInputField(this.state.activeDateTimeProperty, getFormattedRoundHoursAndMinutes(date));
     this.getTotalBreakDuration();
     this.hideDateTimePicker();
   }
 
+  /**
+   *
+   * @param duration
+   */
   handleBreakDuration(duration) {
     this.setState({activeBreakDuration: duration});
     this.onUpdateInputField('breakDuration', duration);
   }
 
+  /**
+   *
+   */
   incrementBreakDuration() {
     if (getTimeInterval(this.state.record.startTime, this.state.record.endTime, this.state.record.breakDuration) > this.state.activeBreakDuration) {
       this.handleBreakDuration(this.state.activeBreakDuration+15);
     }
   }
 
+  /**
+   *
+   */
   decrementBreakDuration() {
-    this.handleBreakDuration(Math.max(0, this.state.activeBreakDuration-15));
+    this.handleBreakDuration(Math.max(this.getMinimumBreakDuration(), this.state.activeBreakDuration-15));
   }
 
+  /**
+   *
+   */
   getTotalBreakDuration() {
-    let totalBreak = 0;
-
-    totalBreak += this.calculateBreakDuration(this.props.user.longBreaks, 30);
-    totalBreak += this.calculateBreakDuration(this.props.user.shortBreaks, 15);
-
+    let totalBreak = this.getMinimumBreakDuration();
     this.handleBreakDuration(totalBreak);
   }
 
+  /**
+   *
+   * @param totalBreak
+   * @returns {number}
+   */
+  getMinimumBreakDuration(totalBreak = 0) {
+    totalBreak += this.calculateBreakDuration(this.props.user.longBreaks, 30);
+    totalBreak += this.calculateBreakDuration(this.props.user.shortBreaks, 15);
+
+    return totalBreak;
+  }
+
+  /**
+   *
+   * @param breaks
+   * @param value
+   * @returns {number}
+   */
   calculateBreakDuration(breaks, value) {
     let breakDuration = 0;
 
     breaks.forEach(b => {
       let startTime = getUtcHoursMinutes(this.props.record.startTime);
       let endTime = getUtcHoursMinutes(this.props.record.endTime);
-      let longBreak = getUtcHoursMinutes(b);
+      let currentBreak = getUtcHoursMinutes(b);
 
-      if (startTime.isBefore(longBreak) && longBreak.isBefore(endTime)) {
+      if (startTime.isSameOrBefore(currentBreak) && currentBreak.isBefore(endTime)) {
         breakDuration += value;
       }
 
@@ -137,24 +200,31 @@ class TimeRecordScreen extends React.Component
     return breakDuration;
   }
 
+  /**
+   *
+   */
   onPressSaveRow() {
 
-    if (! this.validateTime(this.state.record.endTime)) {
-      this.correctTime('endTime');
-      alert('Your time will be updated');
+    let validateAmount = this.validateTime(this.state.record.endTime);
+
+    if (validateAmount) {
+      this.correctTime('endTime', validateAmount);
+      this.handleBreakDuration(this.getMinimumBreakDuration());
+      Alert.alert('Whoops', 'Your time will be updated');
       return;
     }
 
     let isValid = true;
 
     this.inputFields.forEach(input => {
-      if (!this.isValid(input.current.props.value, input.current.props.pattern)) {
+
+      if (! this.isValid(input.current.props.value, input.current.props.pattern)) {
         isValid = false;
       }
     });
 
     if (!isValid) {
-      alert('Can\'t submit, incorrect order number');
+      Alert.alert('Whoops', 'Can\'t submit, incorrect order number');
       return;
     }
 
@@ -167,48 +237,114 @@ class TimeRecordScreen extends React.Component
     this.props.navigation.goBack();
   };
 
+  /**
+   *
+   * @param date
+   * @returns {*}
+   */
   validateTime(date) {
-    return moment(date, 'HH:mm') >= moment(this.state.record.startTime, 'HH:mm');
+
+    let minimumTime = addTime(this.state.record.startTime, this.getMinimumBreakDuration(), 'minutes');
+
+    if (moment(minimumTime, 'HH:mm') <= moment(date, 'HH:mm')) {
+      return null;
+    }
+
+    if (moment(this.state.record.startTime, 'HH:mm') > moment(date, 'HH:mm')) {
+      return 15;
+    }
+
+    return 30;
   }
 
-  correctTime(property) {
-      let time = addTime(this.state.record.startTime, 15, 'minutes');
-      this.onUpdateInputField(property, getFormattedHoursAndMinutes(time));
+  /**
+   *
+   * @param property
+   * @param amount
+   */
+  correctTime(property, amount = 15) {
+      let time = addTime(this.state.record.startTime, amount, 'minutes');
+      this.onUpdateInputField(property, getFormattedRoundHoursAndMinutes(time));
   }
 
+  /**
+   *
+   * @param property
+   * @param value
+   */
   onUpdateInputField(property, value) {
     let record = this.state.record;
     record[property] = value;
     this.setState({record});
   }
 
-  isValid(value, pattern) {
-    const condition = new RegExp(pattern, 'g');
-    return condition.test(value);
+  /**
+   *
+   * @param values
+   * @param pattern
+   * @returns {boolean}
+   */
+  isValid(values, pattern) {
+    let isValid = true;
+    const v = values.trim().split('\n');
+
+    v.forEach(value => {
+      if (! new RegExp(pattern, 'g').test(value)) {
+        isValid = false;
+      }
+    });
+
+    return isValid;
   }
 
+  /**
+   *
+   * @returns {*}
+   */
   render() {
+
+    let summary;
+
+    if (this.state.orientation === ScreenOrientation.Orientation.PORTRAIT) {
+      summary = (
+          <View style={components.TimeRecordDetailSummary}>
+            <View style={components.TimeRecordDetailCalculation}>
+              <Text style={[components.TimeRecordDetailTotalTime, components.Title02]}>
+                {getFormattedTimeInterval(this.state.record.startTime, this.state.record.endTime)}
+              </Text>
+              <Text style={components.TimeRecordDetailBreakDuration}>
+                -{this.state.activeBreakDuration} min
+              </Text>
+            </View>
+            <Text style={components.Title01}>
+              {getFormattedTimeInterval(this.state.record.startTime, this.state.record.endTime, this.state.record.breakDuration)}
+            </Text>
+          </View>
+      );
+    }
 
     return (
       <View style={{flex: 1}}>
 
         <View style={{padding: 20, flex: 1}}>
 
-          <View style={{alignItems: 'stretch'}}>
+          <ScrollView>
 
             <View style={components.FieldsetRow}>
               <View style={components.FieldsetGroup}>
                 <Input
-                  ref={this.orderInput}
-                  containerStyle={{flex: 1}}
-                  onChangeText={(orderNumber) => this.onUpdateInputField('orderNumber', orderNumber)}
-                  placeholder="Order number"
-                  pattern={'([a-zA-Z0-9]{6})-((V|P|I|M|A|D)|[0-9]{1})([0-9]{3})'}
-                  value={this.state.record.orderNumber}
+                    ref={this.orderInput}
+                    containerStyle={{flex: 1}}
+                    onChangeText={(orderNumber) => this.onUpdateInputField('orderNumber', orderNumber)}
+                    placeholder="Order number"
+                    pattern={'(([a-zA-Z0-9]{6})-((V|P|I|M|A|D)|[0-9]{1})([0-9]{3}))'}
+                    value={this.state.record.orderNumber}
+                    multiline={true}
                 />
-                <Button title="Scan" buttonStyle={{backgroundColor: colors.color06, borderRadius: 0}} onPress={() => {this.props.navigation.navigate('BarcodeScanner')}}/>
+                <Button title="Scan" buttonStyle={{backgroundColor: colors.color06, borderRadius: 0, marginRight: 5}} onPress={() => {this.props.navigation.navigate('BarcodeScanner')}}/>
               </View>
             </View>
+
 
             <View style={components.FieldsetRow}>
               <View style={components.FieldsetGroup}>
@@ -256,23 +392,11 @@ class TimeRecordScreen extends React.Component
               />
             </View>
 
-          </View>
+          </ScrollView>
 
         </View>
 
-        <View style={components.TimeRecordDetailSummary}>
-          <View style={components.TimeRecordDetailCalculation}>
-            <Text style={[components.TimeRecordDetailTotalTime, components.Title02]}>
-              {getFormattedTimeInterval(this.state.record.startTime, this.state.record.endTime)}
-            </Text>
-            <Text style={components.TimeRecordDetailBreakDuration}>
-              -{this.state.activeBreakDuration} min
-            </Text>
-          </View>
-          <Text style={components.Title01}>
-            {getFormattedTimeInterval(this.state.record.startTime, this.state.record.endTime, this.state.record.breakDuration)}
-          </Text>
-        </View>
+        {summary}
 
         <Button title="Save" buttonStyle={{backgroundColor: colors.color06, borderRadius: 0, padding: 10}}
                 onPress={this.onPressSaveRow.bind(this)} color={colors.color03}/>
