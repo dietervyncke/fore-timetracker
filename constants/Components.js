@@ -13,7 +13,9 @@ export default
     backgroundColor: '#FFFFFF'
   },
   TimeRecordRowTotalTime: {
-    paddingLeft: 15
+    paddingLeft: 15,
+    alignItems: 'flex-end',
+    justifyContent: 'space-between'
   },
   TimeRecordRowMain: {
     flex: 1

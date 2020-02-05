@@ -45,9 +45,9 @@ class TimeRecordScreen extends React.Component
     this.orderInput = React.createRef();
     this.inputFields.push(this.orderInput);
 
-    ScreenOrientation.addOrientationChangeListener(e => {
-      this.setState({orientation: e.orientationInfo.orientation});
-    });
+    // ScreenOrientation.addOrientationChangeListener(e => {
+    //   this.setState({orientation: e.orientationInfo.orientation});
+    // });
   }
 
   /**
@@ -60,7 +60,8 @@ class TimeRecordScreen extends React.Component
 
     if (! this.props.record.key) {
       record = Object.assign(this.props.record, {
-        orderNumber: ''
+        orderNumber: '',
+        description: ''
       });
 
       if (previousRecord) {
@@ -72,9 +73,9 @@ class TimeRecordScreen extends React.Component
       }
     }
 
-    ScreenOrientation.getOrientationAsync().then(response => {
-      this.setState({orientation: response.orientation});
-    });
+    // ScreenOrientation.getOrientationAsync().then(response => {
+    //   this.setState({orientation: response.orientation});
+    // });
 
     this.setState({
       record: record,
@@ -98,7 +99,7 @@ class TimeRecordScreen extends React.Component
    *
    */
   componentWillUnmount() {
-    ScreenOrientation.removeOrientationChangeListeners();
+    // ScreenOrientation.removeOrientationChangeListeners();
   }
 
   /**
@@ -218,7 +219,13 @@ class TimeRecordScreen extends React.Component
 
     this.inputFields.forEach(input => {
 
-      if (! this.isValid(input.current.props.value, input.current.props.pattern)) {
+      const values = input.current.props.value.trim().split('\n');
+
+      if (values.length > 1) {
+        this.onUpdateInputField('multiOrder', true);
+      }
+
+      if (! this.isValid(values, input.current.props.pattern)) {
         isValid = false;
       }
     });
@@ -233,6 +240,8 @@ class TimeRecordScreen extends React.Component
     } else {
       this.props.add(this.state.record);
     }
+
+    // ScreenOrientation.removeOrientationChangeListeners();
 
     this.props.navigation.goBack();
   };
@@ -286,9 +295,8 @@ class TimeRecordScreen extends React.Component
    */
   isValid(values, pattern) {
     let isValid = true;
-    const v = values.trim().split('\n');
 
-    v.forEach(value => {
+    values.forEach(value => {
       if (! new RegExp(pattern, 'g').test(value)) {
         isValid = false;
       }
@@ -337,7 +345,7 @@ class TimeRecordScreen extends React.Component
                     containerStyle={{flex: 1}}
                     onChangeText={(orderNumber) => this.onUpdateInputField('orderNumber', orderNumber)}
                     placeholder="Order number"
-                    pattern={'(([a-zA-Z0-9]{6})-((V|P|I|M|A|D)|[0-9]{1})([0-9]{3}))'}
+                    pattern={'(([a-zA-Z0-9]{6})-((V|v|P|p|I|i|M|m|A|a|D|d)|[0-9]{1})([0-9]{3}))'}
                     value={this.state.record.orderNumber}
                     multiline={true}
                 />
@@ -404,6 +412,7 @@ class TimeRecordScreen extends React.Component
         <DateTimePicker
             isVisible={this.state.isDateTimePickerVisible}
             date={this.state.activeDateTimeValue}
+            minuteInterval={15}
             mode='time'
             onConfirm={this.handleDatePicked.bind(this)}
             onCancel={this.hideDateTimePicker.bind(this)}

@@ -12,13 +12,23 @@ class DateTimePicker extends React.Component {
         onCancel: () => {}
     };
 
+    constructor(props) {
+        super(props);
+
+        this.state = { minuteInterval: 0 };
+    }
+
+    componentDidMount() {
+        this.setState({ minuteInterval: this.props.minuteInterval })
+    }
+
     render() {
         return (
             <ModalDateTimePicker
                 isVisible={this.props.isVisible}
                 date={this.props.date}
                 mode={this.props.mode}
-                minuteInterval={this.props.minuteInterval}
+                minuteInterval={this.state.minuteInterval}
                 onConfirm={(date) => {this.props.onConfirm(date)}}
                 onCancel={(date) => {this.props.onCancel(date)}}
             />

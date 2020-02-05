@@ -320,6 +320,7 @@ class HomeScreen extends Component
 
     let breakDuration;
     let description;
+    let multiOrderDuration;
 
     if (record.breakDuration > 0) {
       breakDuration = <Text style={{marginRight: 15}}>{record.breakDuration}min</Text>
@@ -327,6 +328,13 @@ class HomeScreen extends Component
 
     if (record.description && this.state.orientation === ScreenOrientation.Orientation.LANDSCAPE) {
       description = <Text style={{marginRight: 15}}>{record.description.substring(0, 30) + '...'}</Text>
+    }
+
+    if (record.multiOrder) {
+      let orderNumbers = record.orderNumber.trim().split('\n');
+      let perOrderTotal = formatTime(timeStringToMinutes(getFormattedTimeInterval(record.startTime, record.endTime, record.breakDuration)) / orderNumbers.length);
+
+      multiOrderDuration = <Text>({orderNumbers.length} x {perOrderTotal})</Text>;
     }
 
     return (
@@ -353,6 +361,7 @@ class HomeScreen extends Component
               <Text>
                 {getFormattedTimeInterval(record.startTime, record.endTime, record.breakDuration)}
               </Text>
+              {multiOrderDuration}
             </View>
 
           </View>

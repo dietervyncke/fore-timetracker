@@ -21,13 +21,14 @@ const initialState = {
     longBreaks: [
         '12:00'
     ],
-    storeEmail: 'dagfiche@fore.be',
-    emailSubject: 'scan be0414308180'
+    storeEmail: '',
+    emailSubject: ''
   },
   currentDate: getFormattedDate(new Date()),
   record: {
     key: null,
     orderNumber: '',
+    multiOrder: false,
     date: getFormattedDate(new Date()),
     startTime: getFormattedRoundHoursAndMinutes(),
     endTime: getFormattedRoundHoursAndMinutes(),
