@@ -3,7 +3,7 @@
     "name": "Foré timetracker",
     "description": "Company time tracker",
     "slug": "fore-timetracker",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "privacy": "public",
     "primaryColor": "#ffffff",
     "sdkVersion": "33.0.0",

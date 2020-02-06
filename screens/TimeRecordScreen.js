@@ -409,14 +409,15 @@ class TimeRecordScreen extends React.Component
         <Button title="Save" buttonStyle={{backgroundColor: colors.color06, borderRadius: 0, padding: 10}}
                 onPress={this.onPressSaveRow.bind(this)} color={colors.color03}/>
 
-        <DateTimePicker
-            isVisible={this.state.isDateTimePickerVisible}
-            date={this.state.activeDateTimeValue}
-            minuteInterval={15}
-            mode='time'
-            onConfirm={this.handleDatePicked.bind(this)}
-            onCancel={this.hideDateTimePicker.bind(this)}
-        />
+        {!!this.state.isDateTimePickerVisible && (
+            <DateTimePicker
+                date={this.state.activeDateTimeValue}
+                minuteInterval={15}
+                mode='time'
+                onConfirm={this.handleDatePicked.bind(this)}
+                onCancel={this.hideDateTimePicker.bind(this)}
+            />
+        )}
 
       </View>
     );

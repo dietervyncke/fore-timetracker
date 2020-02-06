@@ -334,34 +334,35 @@ class HomeScreen extends Component
       let orderNumbers = record.orderNumber.trim().split('\n');
       let perOrderTotal = formatTime(timeStringToMinutes(getFormattedTimeInterval(record.startTime, record.endTime, record.breakDuration)) / orderNumbers.length);
 
-      multiOrderDuration = <Text>({orderNumbers.length} x {perOrderTotal})</Text>;
+      multiOrderDuration = (
+          <View style={{paddingTop: 5}}>
+            <Text>({orderNumbers.length} x {perOrderTotal})</Text>
+          </View>
+      );
     }
 
     return (
         <TouchableHighlight onPress={this.navigateToRecordDetail.bind(this, record.key)}>
           <View style={components.TimeRecordRow}>
 
+            <View>
+              <Text>{record.orderNumber}</Text>
+            </View>
+
             <View style={components.TimeRecordRowMain}>
 
               <View style={components.TimeRecordRowHeader}>
-                <Text>{record.orderNumber}</Text>
+                <Text style={{paddingLeft: 25, flexGrow: 1}}>{description}</Text>
+                {breakDuration}
+                <Text>{record.startTime} - {record.endTime}</Text>
 
-                <Text>{description}</Text>
-
-                <View style={components.TimeRecordRowTimeDetail}>
-                  {breakDuration}
-                  <Text>{record.startTime} - {record.endTime}</Text>
-                </View>
-
+                <Text style={{paddingLeft: 10}}>
+                  {getFormattedTimeInterval(record.startTime, record.endTime, record.breakDuration)}
+                </Text>
               </View>
 
-            </View>
-
-            <View style={components.TimeRecordRowTotalTime}>
-              <Text>
-                {getFormattedTimeInterval(record.startTime, record.endTime, record.breakDuration)}
-              </Text>
               {multiOrderDuration}
+
             </View>
 
           </View>

@@ -12,24 +12,13 @@ export default
     paddingLeft: 15,
     backgroundColor: '#FFFFFF'
   },
-  TimeRecordRowTotalTime: {
-    paddingLeft: 15,
-    alignItems: 'flex-end',
-    justifyContent: 'space-between'
-  },
   TimeRecordRowMain: {
-    flex: 1
+    flexGrow: 1,
+    paddingLeft: 5,
+    alignItems: 'flex-end'
   },
   TimeRecordRowHeader: {
-    flexDirection: 'row',
-    flexGrow: 1,
-    justifyContent: 'space-between'
-  },
-  TimeRecordRowTimeDetail: {
     flexDirection: 'row'
-  },
-  TimeRecordRowDescription: {
-    paddingTop: 10
   },
   Input: {
     borderWidth: 1,
