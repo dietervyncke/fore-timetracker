@@ -326,7 +326,11 @@ class HomeScreen extends Component
       breakDuration = <Text style={{marginRight: 15}}>{record.breakDuration}min</Text>
     }
 
-    if (record.description && this.state.orientation === ScreenOrientation.Orientation.LANDSCAPE) {
+    if (record.description && (
+        this.state.orientation === ScreenOrientation.Orientation.LANDSCAPE ||
+        this.state.orientation === ScreenOrientation.Orientation.LANDSCAPE_LEFT ||
+        this.state.orientation === ScreenOrientation.Orientation.LANDSCAPE_RIGHT
+    )) {
       description = <Text style={{marginRight: 15}}>{record.description.substring(0, 30) + '...'}</Text>
     }
 
@@ -409,7 +413,11 @@ class HomeScreen extends Component
           <Text>{this.state.dayTotal}</Text>
       );
 
-      if (this.state.orientation === ScreenOrientation.Orientation.PORTRAIT) {
+      if (
+          this.state.orientation === ScreenOrientation.Orientation.PORTRAIT ||
+          this.state.orientation === ScreenOrientation.Orientation.PORTRAIT_UP ||
+          this.state.orientation === ScreenOrientation.Orientation.PORTRAIT_DOWN
+      ) {
         sendDataButton = <Button style={{marginTop: 10}} color={colors.color03} title="Export data"
                                  onPress={() => this.exportData()}
                                  buttonStyle={{backgroundColor: colors.color06, borderRadius: 0, padding: 10}}

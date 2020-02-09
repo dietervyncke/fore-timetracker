@@ -44,10 +44,6 @@ class TimeRecordScreen extends React.Component
     this.inputFields = [];
     this.orderInput = React.createRef();
     this.inputFields.push(this.orderInput);
-
-    // ScreenOrientation.addOrientationChangeListener(e => {
-    //   this.setState({orientation: e.orientationInfo.orientation});
-    // });
   }
 
   /**
@@ -61,7 +57,8 @@ class TimeRecordScreen extends React.Component
     if (! this.props.record.key) {
       record = Object.assign(this.props.record, {
         orderNumber: '',
-        description: ''
+        description: '',
+        breakDuration: 0
       });
 
       if (previousRecord) {
@@ -73,33 +70,20 @@ class TimeRecordScreen extends React.Component
       }
     }
 
-    // ScreenOrientation.getOrientationAsync().then(response => {
-    //   this.setState({orientation: response.orientation});
-    // });
-
     this.setState({
       record: record,
-      activeBreakDuration: this.props.record.breakDuration
+      activeBreakDuration: record.breakDuration
     });
   }
 
   /**
    *
    * @param prevProps
-   * @param prevState
-   * @param snapshot
    */
-  componentDidUpdate(prevProps, prevState, snapshot) {
-    if (prevProps.navigation.getParam('url') !== this.props.navigation.getParam('url')) {
-      this.onUpdateInputField('orderNumber', (this.props.record.orderNumber ? this.props.record.orderNumber+'\n' : '')+this.props.navigation.getParam('url'));
+  componentDidUpdate(prevProps) {
+    if (prevProps.navigation.getParam('id') !== this.props.navigation.getParam('id')) {
+      this.onUpdateInputField('orderNumber', (this.props.record.orderNumber ? this.props.record.orderNumber+'\n' : '')+this.props.navigation.getParam('data'));
     }
-  }
-
-  /**
-   *
-   */
-  componentWillUnmount() {
-    // ScreenOrientation.removeOrientationChangeListeners();
   }
 
   /**
@@ -240,8 +224,6 @@ class TimeRecordScreen extends React.Component
     } else {
       this.props.add(this.state.record);
     }
-
-    // ScreenOrientation.removeOrientationChangeListeners();
 
     this.props.navigation.goBack();
   };

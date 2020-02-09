@@ -1,7 +1,8 @@
 import * as React from 'react';
-import { Text, View, StyleSheet, Button } from 'react-native';
 import * as Permissions from 'expo-permissions';
 
+import v4 from 'uuid/v4';
+import { Text, View, StyleSheet, Button } from 'react-native';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 import { Audio } from 'expo-av';
 
@@ -59,6 +60,9 @@ export default class BarcodeScannerExample extends React.Component {
     } catch (error) {}
 
     this.setState({ scanned: true });
-    this.props.navigation.navigate('TimeRecord', {url: data});
+    this.props.navigation.navigate('TimeRecord', {
+      id: v4(),
+      data: data
+    });
   };
 }

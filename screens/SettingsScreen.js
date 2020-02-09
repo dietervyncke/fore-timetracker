@@ -2,7 +2,7 @@ import components from "../constants/Components";
 import React from 'react';
 
 import { Input, Button, Icon, Overlay } from 'react-native-elements';
-import { View } from "react-native";
+import {ScrollView, View} from "react-native";
 
 class SettingsScreen extends React.Component {
 
@@ -108,66 +108,64 @@ class SettingsScreen extends React.Component {
     if (this.state.user) {
 
       userInputs = (
-          <View style={{alignItems: 'stretch'}}>
+          <View style={{flex: 1}}>
 
-            <View style={components.FieldsetRow}>
-              <View style={components.FieldsetGroup}>
+            <ScrollView>
 
-              </View>
-            </View>
+              <Input onChangeText={(code) => this.onUpdateInputField('code', code)}
+                     placeholder="Staff number"
+                     label="Staff number"
+                     value={this.state.user.code}
+                     inputContainerStyle={{marginBottom: 20}}
+              />
 
-            <Input onChangeText={(code) => this.onUpdateInputField('code', code)}
-                   placeholder="Staff number"
-                   label="Staff number"
-                   value={this.state.user.code}
-                   inputContainerStyle={{marginBottom: 20}}
-            />
+              <Input onChangeText={(storeEmail) => this.onUpdateInputField('storeEmail', storeEmail)}
+                     placeholder="Storage email"
+                     label="Storage email"
+                     value={this.state.user.storeEmail}
+                     inputContainerStyle={{marginBottom: 20}}
+              />
 
-            <Input onChangeText={(storeEmail) => this.onUpdateInputField('storeEmail', storeEmail)}
-                   placeholder="Storage email"
-                   label="Storage email"
-                   value={this.state.user.storeEmail}
-                   inputContainerStyle={{marginBottom: 20}}
-            />
+              <Input onChangeText={(emailSubject) => this.onUpdateInputField('emailSubject', emailSubject)}
+                     placeholder="Subject"
+                     label="Subject"
+                     value={this.state.user.emailSubject}
+                     inputContainerStyle={{marginBottom: 20}}
+              />
 
-            <Input onChangeText={(emailSubject) => this.onUpdateInputField('emailSubject', emailSubject)}
-                   placeholder="Subject"
-                   label="Subject"
-                   value={this.state.user.emailSubject}
-                   inputContainerStyle={{marginBottom: 20}}
-            />
-
-            <View style={[components.FieldsetRow, {marginTop: 20, marginBottom: 10}]}>
-              <View style={components.FieldsetGroup}>
-                <View style={{flex: 1}}>
-                  <Input
-                      placeholder="Short breaks"
-                      label="Short breaks"
-                      disabled={true}
-                      value={this.getBreakValues(this.state.user.shortBreaks)}
-                      inputContainerStyle={{marginBottom: 20}}
-                  />
+              <View style={[components.FieldsetRow, {marginTop: 20, marginBottom: 10}]}>
+                <View style={components.FieldsetGroup}>
+                  <View style={{flex: 1}}>
+                    <Input
+                        placeholder="Short breaks"
+                        label="Short breaks"
+                        disabled={true}
+                        value={this.getBreakValues(this.state.user.shortBreaks)}
+                        inputContainerStyle={{marginBottom: 20}}
+                    />
+                  </View>
+                  <Icon type="feather" name="plus" color={colors.color06} size={25} onPress={() => {this.showDateTimePicker('shortBreaks')}} iconStyle={{marginRight: 10}}/>
+                  <Icon type="feather" name="trash-2" color={colors.color06} size={25} onPress={() => {this.clearInput('shortBreaks')}}/>
                 </View>
-                <Icon type="feather" name="plus" color={colors.color06} size={25} onPress={() => {this.showDateTimePicker('shortBreaks')}} iconStyle={{marginRight: 10}}/>
-                <Icon type="feather" name="trash-2" color={colors.color06} size={25} onPress={() => {this.clearInput('shortBreaks')}}/>
               </View>
-            </View>
 
-            <View style={[components.FieldsetRow, {marginTop: 20, marginBottom: 10}]}>
-              <View style={components.FieldsetGroup}>
-                <View style={{flex: 1}}>
-                  <Input
-                      placeholder="Long breaks"
-                      label="Long breaks"
-                      disabled={true}
-                      value={this.getBreakValues(this.state.user.longBreaks)}
-                      inputContainerStyle={{marginBottom: 20}}
-                  />
+              <View style={[components.FieldsetRow, {marginTop: 20, marginBottom: 10}]}>
+                <View style={components.FieldsetGroup}>
+                  <View style={{flex: 1}}>
+                    <Input
+                        placeholder="Long breaks"
+                        label="Long breaks"
+                        disabled={true}
+                        value={this.getBreakValues(this.state.user.longBreaks)}
+                        inputContainerStyle={{marginBottom: 20}}
+                    />
+                  </View>
+                  <Icon type="feather" name="plus" color={colors.color06} size={25} onPress={() => {this.showDateTimePicker('longBreaks')}} iconStyle={{marginRight: 10}}/>
+                  <Icon type="feather" name="trash-2" color={colors.color06} size={25} onPress={() => {this.clearInput('longBreaks')}}/>
                 </View>
-                <Icon type="feather" name="plus" color={colors.color06} size={25} onPress={() => {this.showDateTimePicker('longBreaks')}} iconStyle={{marginRight: 10}}/>
-                <Icon type="feather" name="trash-2" color={colors.color06} size={25} onPress={() => {this.clearInput('longBreaks')}}/>
               </View>
-            </View>
+
+            </ScrollView>
           </View>
       );
     }
@@ -176,10 +174,10 @@ class SettingsScreen extends React.Component {
 
         <View style={{flex: 1}}>
 
-          <Overlay isVisible={!this.state.isAuthenticated}>
-            <View style={{flex: 1}}>
+          <Overlay isVisible={!this.state.isAuthenticated} overlayStyle={{justifyContent: 'center'}}>
+            <View style={{alignItems: 'center'}}>
               <Input
-                  containerStyle={{flex: 1}}
+                  containerStyle={{flex: 1, minHeight: 60}}
                   onChangeText={(password) => this.onUpdatePassword(password)}
                   placeholder="Password"
               />

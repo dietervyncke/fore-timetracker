@@ -1,6 +1,7 @@
 import moment from 'moment';
 
-export const getFormattedRoundHoursAndMinutes = (time = moment().round(15, 'minutes')) => moment(time).format('HH:mm');
+export const getFormattedRoundHoursAndMinutes = (time = moment()) => moment(time).round(15, 'minutes').format('HH:mm');
+
 export const getFormattedHoursAndMinutes = (time = moment()) => moment(time).format('HH:mm');
 export const getUtcHoursMinutes = (time) => moment.utc(time, 'HH:mm');
 export const getFormattedDate = (dateTime) => moment(dateTime).format('YYYY/MM/DD');
@@ -9,6 +10,7 @@ export const getFormattedDisplayDate = (dateTime) => moment(new Date(dateTime)).
 export const getTimeInterval = (startTime, endTime, breakDuration = 0) => {
   const start = getUtcHoursMinutes(startTime);
   const end = getUtcHoursMinutes(endTime);
+
   let diff = moment.duration(end.diff(start));
   diff = diff.subtract(breakDuration, 'minutes');
 
@@ -17,7 +19,9 @@ export const getTimeInterval = (startTime, endTime, breakDuration = 0) => {
 
 export const getFormattedTimeInterval = (startTime, endTime, breakDuration = 0) => {
   const diff = getTimeInterval(startTime, endTime, breakDuration);
-  return diff.format('HH:mm');
+  let validatedDiff = moment.max(moment.utc(0), diff);
+
+  return validatedDiff.format('HH:mm');
 };
 
 export const addTime = (dateTime, value, key) => moment(dateTime, 'HH:mm').add(value, key);
