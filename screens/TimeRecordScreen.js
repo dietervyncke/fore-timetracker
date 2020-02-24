@@ -205,9 +205,7 @@ class TimeRecordScreen extends React.Component
 
       const values = input.current.props.value.trim().split('\n');
 
-      if (values.length > 1) {
-        this.onUpdateInputField('multiOrder', true);
-      }
+      this.onUpdateInputField('multiOrder', values.length > 1);
 
       if (! this.isValid(values, input.current.props.pattern)) {
         isValid = false;
@@ -326,8 +324,9 @@ class TimeRecordScreen extends React.Component
                     ref={this.orderInput}
                     containerStyle={{flex: 1}}
                     onChangeText={(orderNumber) => this.onUpdateInputField('orderNumber', orderNumber)}
+                    onEndEditing={({nativeEvent}) => this.onUpdateInputField('orderNumber', nativeEvent.text.trim())}
                     placeholder="Order number"
-                    pattern={'(([a-zA-Z0-9]{6})-((V|v|P|p|I|i|M|m|A|a|D|d)|[0-9]{1})([0-9]{3}))'}
+                    pattern={'(([a-zA-Z0-9éèà!@#$%^&*(),.?":{}|<>]{6})-((V|v|P|p|I|i|M|m|A|a|D|d)|[0-9]{1})([0-9]{3}))'}
                     value={this.state.record.orderNumber}
                     multiline={true}
                 />
