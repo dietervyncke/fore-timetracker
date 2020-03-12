@@ -254,40 +254,39 @@ class HomeScreen extends Component
    */
   prepareDataForExport(data) {
 
-    let dataCopy = data.records.slice();
+    let dataCopy = [];
 
-    dataCopy.forEach((record, index, dataCopy) => {
+    data.records.forEach(record => {
 
       let orderNumbers = record.orderNumber.trim().split('\n');
 
-      if (orderNumbers.length > 1) {
+      if (orderNumbers.length === 1) {
+        dataCopy.push(record);
+        return;
+      }
 
-        let extraRows = [];
-        let rowTotal = timeStringToMinutes(getFormattedTimeInterval(record.startTime, record.endTime, record.breakDuration)) / orderNumbers.length;
+      let rowTotal = timeStringToMinutes(getFormattedTimeInterval(record.startTime, record.endTime, record.breakDuration)) / orderNumbers.length;
 
-        let endTime = getFormattedHoursAndMinutes(addTime(record.startTime, rowTotal, 'minutes'));
-        let startTime = record.startTime;
+      let endTime = getFormattedHoursAndMinutes(addTime(record.startTime, rowTotal, 'minutes'));
+      let startTime = record.startTime;
 
-        for (let i = 0; i < orderNumbers.length; i++) {
+      for (let i = 0; i < orderNumbers.length; i++) {
 
-          if (i !== 0) {
-            endTime = getFormattedHoursAndMinutes(addTime(startTime, rowTotal, 'minutes'));
-          }
-
-          extraRows.push({
-            orderNumber: orderNumbers[i].trim(),
-            date: record.date,
-            startTime: startTime,
-            endTime: endTime,
-            breakDuration: 0,
-            description: record.description
-          });
-
-          startTime = endTime;
-
+        if (i !== 0) {
+          endTime = getFormattedHoursAndMinutes(addTime(startTime, rowTotal, 'minutes'));
         }
 
-        dataCopy.splice(index, 1, ...extraRows);
+        dataCopy.push({
+          orderNumber: orderNumbers[i].trim(),
+          date: record.date,
+          startTime: startTime,
+          endTime: endTime,
+          breakDuration: 0,
+          description: record.description
+        });
+
+        startTime = endTime;
+
       }
 
     });

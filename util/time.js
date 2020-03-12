@@ -1,6 +1,6 @@
 import moment from 'moment';
 
-export const getFormattedRoundHoursAndMinutes = (time = moment()) => moment(time).round(15, 'minutes').format('HH:mm');
+export const getFormattedRoundHoursAndMinutes = (time = moment()) => moment(time).ceil(15, 'minutes').format('HH:mm');
 
 export const getFormattedHoursAndMinutes = (time = moment()) => moment(time).format('HH:mm');
 export const getUtcHoursMinutes = (time) => moment.utc(time, 'HH:mm');
