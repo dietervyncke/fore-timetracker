@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TouchableWithoutFeedback, ScrollView, Alert } from 'react-native';
 import { Button, Input, Text, Icon } from 'react-native-elements';
-import { ScreenOrientation } from "expo";
+import * as ScreenOrientation from 'expo-screen-orientation';
 
 import {
   getFormattedRoundHoursAndMinutes,
@@ -31,7 +31,7 @@ class TimeRecordScreen extends React.Component
     activeBreakDuration: 0,
     hasCameraPermission: null,
     scanned: false,
-    orientation: ScreenOrientation.Orientation.PORTRAIT
+    orientation: ScreenOrientation.Orientation.PORTRAIT_UP
   };
 
   /**
@@ -293,7 +293,7 @@ class TimeRecordScreen extends React.Component
 
     let summary;
 
-    if (this.state.orientation === ScreenOrientation.Orientation.PORTRAIT) {
+    if (this.state.orientation === ScreenOrientation.Orientation.PORTRAIT_UP) {
       summary = (
           <View style={components.TimeRecordDetailSummary}>
             <View style={components.TimeRecordDetailCalculation}>

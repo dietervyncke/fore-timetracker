@@ -1,7 +1,8 @@
 import React from 'react';
 import { PersistGate } from 'redux-persist/integration/react'
 import { Platform, StatusBar, StyleSheet, View } from 'react-native';
-import {AppLoading, ScreenOrientation} from 'expo';
+import { AppLoading } from 'expo';
+import * as ScreenOrientation from 'expo-screen-orientation';
 import { Asset } from 'expo-asset';
 import * as Font from 'expo-font';
 import * as Icon from '@expo/vector-icons';
@@ -30,7 +31,7 @@ export default class App extends React.Component {
   }
 
   setStatusBar(orientation) {
-    if (orientation === ScreenOrientation.Orientation.LANDSCAPE) {
+    if (orientation === ScreenOrientation.Orientation.LANDSCAPE_LEFT) {
       StatusBar.setHidden(true);
       return;
     }

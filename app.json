@@ -24,7 +24,8 @@
       "**/*"
     ],
     "ios": {
-      "bundleIdentifier": "com.dietervyncke.foretimetracker"
+      "bundleIdentifier": "com.dietervyncke.foretimetracker",
+      "requireFullScreen": true,
     },
     "android": {
       "versionCode": 4,

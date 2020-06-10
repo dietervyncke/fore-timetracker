@@ -1,7 +1,5 @@
 import React, {Component} from 'react';
 
-import {ScreenOrientation} from 'expo';
-
 import {
   getFormattedTimeInterval,
   getFormattedDate,
@@ -25,6 +23,8 @@ import { sendMail } from "../util/send";
 
 import DateTimePicker from './DateTimePicker';
 
+import * as ScreenOrientation from 'expo-screen-orientation';
+
 import {Text, View, Alert, TouchableHighlight } from 'react-native';
 import {Icon, Button} from 'react-native-elements';
 import {SwipeListView} from 'react-native-swipe-list-view';
@@ -36,7 +36,7 @@ class HomeScreen extends Component
     activeDateTimeProperty: null,
     dayTotal: 0,
     isSynced: false,
-    orientation: ScreenOrientation.Orientation.PORTRAIT
+    orientation: ScreenOrientation.Orientation.PORTRAIT_UP
   };
 
   static navigationOptions = ({navigation}) => {
@@ -326,7 +326,6 @@ class HomeScreen extends Component
     }
 
     if (record.description && (
-        this.state.orientation === ScreenOrientation.Orientation.LANDSCAPE ||
         this.state.orientation === ScreenOrientation.Orientation.LANDSCAPE_LEFT ||
         this.state.orientation === ScreenOrientation.Orientation.LANDSCAPE_RIGHT
     )) {
@@ -413,7 +412,6 @@ class HomeScreen extends Component
       );
 
       if (
-          this.state.orientation === ScreenOrientation.Orientation.PORTRAIT ||
           this.state.orientation === ScreenOrientation.Orientation.PORTRAIT_UP ||
           this.state.orientation === ScreenOrientation.Orientation.PORTRAIT_DOWN
       ) {

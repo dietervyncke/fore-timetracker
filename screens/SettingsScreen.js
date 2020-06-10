@@ -2,7 +2,7 @@ import components from "../constants/Components";
 import React from 'react';
 
 import { Input, Button, Icon, Overlay } from 'react-native-elements';
-import {ScrollView, View} from "react-native";
+import { ScrollView, View } from "react-native";
 
 class SettingsScreen extends React.Component {
 
