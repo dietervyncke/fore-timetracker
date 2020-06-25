@@ -88,8 +88,8 @@ class HomeScreen extends Component
     let dayTotal = this.getDayTotal();
     let isSynced = this.isDataSynced();
 
-    ScreenOrientation.getOrientationAsync().then(response => {
-      this.setState({orientation: response.orientation});
+    ScreenOrientation.getOrientationAsync().then(orientation => {
+      this.setState({orientation: orientation});
     });
 
     this.setState({
