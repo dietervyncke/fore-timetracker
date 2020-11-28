@@ -7,6 +7,7 @@ import { Asset } from 'expo-asset';
 import * as Font from 'expo-font';
 import * as Icon from '@expo/vector-icons';
 import AppNavigator from './navigation/AppNavigator';
+import {NavigationContainer} from "@react-navigation/native";
 
 import { Provider } from 'react-redux';
 import { store, persistor } from './store';
@@ -43,22 +44,24 @@ export default class App extends React.Component {
 
     if (!this.state.isLoadingComplete && !this.props.skipLoadingScreen) {
       return (
-        <AppLoading
-          startAsync={this._loadResourcesAsync}
-          onError={this._handleLoadingError}
-          onFinish={this._handleFinishLoading}
-        />
+          <AppLoading
+              startAsync={this._loadResourcesAsync}
+              onError={this._handleLoadingError}
+              onFinish={this._handleFinishLoading}
+          />
       );
     } else {
       return (
-        <Provider store={store}>
-          <PersistGate loading={null} persistor={persistor}>
-            <View style={styles.container}>
-              {Platform.OS === 'ios' && <StatusBar barStyle="default" />}
-              <AppNavigator />
-            </View>
-          </PersistGate>
-        </Provider>
+          <NavigationContainer>
+            <Provider store={store}>
+              <PersistGate loading={null} persistor={persistor}>
+                <View style={styles.container}>
+                  {Platform.OS === 'ios' && <StatusBar barStyle="default" />}
+                  <AppNavigator />
+                </View>
+              </PersistGate>
+            </Provider>
+          </NavigationContainer>
       );
     }
   }

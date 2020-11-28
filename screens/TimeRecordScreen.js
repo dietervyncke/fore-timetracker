@@ -81,8 +81,8 @@ class TimeRecordScreen extends React.Component
    * @param prevProps
    */
   componentDidUpdate(prevProps) {
-    if (prevProps.navigation.getParam('id') !== this.props.navigation.getParam('id')) {
-      this.onUpdateInputField('orderNumber', (this.props.record.orderNumber ? this.props.record.orderNumber+'\n' : '')+this.props.navigation.getParam('data'));
+    if (prevProps.route.params?.id !== this.props.route.params?.id) {
+      this.onUpdateInputField('orderNumber', (this.props.record.orderNumber ? this.props.record.orderNumber+'\n' : '')+this.props.route.params.id);
     }
   }
 
@@ -112,9 +112,11 @@ class TimeRecordScreen extends React.Component
    * @param date
    */
   handleDatePicked(date) {
+    if (Platform.OS === 'ios') {
+      this.hideDateTimePicker();
+    }
     this.onUpdateInputField(this.state.activeDateTimeProperty, getFormattedRoundHoursAndMinutes(date));
     this.getTotalBreakDuration();
-    this.hideDateTimePicker();
   }
 
   /**
@@ -312,7 +314,7 @@ class TimeRecordScreen extends React.Component
     }
 
     return (
-      <View style={{flex: 1}}>
+      <View style={{flex: 1, backgroundColor: colors.color01}}>
 
         <View style={{padding: 20, flex: 1}}>
 
@@ -330,7 +332,7 @@ class TimeRecordScreen extends React.Component
                     value={this.state.record.orderNumber}
                     multiline={true}
                 />
-                <Button title="Scan" buttonStyle={{backgroundColor: colors.color06, borderRadius: 0, marginRight: 5}} onPress={() => {this.props.navigation.navigate('BarcodeScanner')}}/>
+                <Button title="Scan" buttonStyle={{backgroundColor: colors.color06, borderRadius: 0, marginRight: 5}} onPress={() => {this.props.navigation.push('BarcodeScanner')}}/>
               </View>
             </View>
 

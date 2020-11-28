@@ -34,10 +34,12 @@ export const pad = (num) => {
   return num.toString().padStart(2,'0');
 };
 
-export const formatTime = (minutes) => {
-  return [pad(Math.floor(minutes/60)%60),
-    pad(minutes%60),
-  ].join(":");
+export const formatTime = (totalMinutes) => {
+
+  let hours = Math.floor(totalMinutes/60)%60;
+  let minutes = Math.round(totalMinutes%60);
+
+  return [pad(hours), pad(minutes)].join(":");
 };
 
 export const timeStringToMinutes = (timeString) => {

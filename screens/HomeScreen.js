@@ -39,17 +39,6 @@ class HomeScreen extends Component
     orientation: ScreenOrientation.Orientation.PORTRAIT_UP
   };
 
-  static navigationOptions = ({navigation}) => {
-    return {
-      title: 'Time clock',
-      headerLeft: () => (
-          <Icon type="feather" name="settings" color={colors.color06}
-                onPress={() => navigation.push('Settings')} iconStyle={{paddingLeft: 10}}
-          />
-      )
-    }
-  };
-
   /**
    *
    * @param props
@@ -153,8 +142,8 @@ class HomeScreen extends Component
    * @param date
    */
   handleDatePicked(date) {
-    this.props.setDate(getFormattedDate(date));
     this.hideDateTimePicker();
+    this.props.setDate(getFormattedDate(date));
   }
 
   /**
@@ -425,7 +414,7 @@ class HomeScreen extends Component
 
     return (
 
-        <View style={{flex: 1, justifyContent: 'space-between'}}>
+        <View style={{flex: 1, justifyContent: 'space-between', backgroundColor: colors.color01}}>
 
           {/* Header */}
           <View style={[{
