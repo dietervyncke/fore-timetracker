@@ -82,7 +82,7 @@ class TimeRecordScreen extends React.Component
    */
   componentDidUpdate(prevProps) {
     if (prevProps.route.params?.id !== this.props.route.params?.id) {
-      this.onUpdateInputField('orderNumber', (this.props.record.orderNumber ? this.props.record.orderNumber+'\n' : '')+this.props.route.params.id);
+      this.onUpdateInputField('orderNumber', (this.props.record.orderNumber ? this.props.record.orderNumber+'\n' : '')+this.props.route.params?.data);
     }
   }
 

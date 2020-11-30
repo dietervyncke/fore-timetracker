@@ -17,6 +17,7 @@ export default function BarcodeScanner({navigation}) {
   }, []);
 
   const handleBarCodeScanned = async ({ type, data }) => {
+
     setScanned(true);
 
     const soundObject = new Audio.Sound();
