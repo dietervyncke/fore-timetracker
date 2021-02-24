@@ -8,6 +8,7 @@ class DateTimePicker extends React.Component {
         date: new Date(),
         mode: 'date',
         minuteInterval: 15,
+        isDarkModeEnabled: false,
         onConfirm: () => {},
         onCancel: () => {}
     };

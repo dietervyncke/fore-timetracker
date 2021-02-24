@@ -34,10 +34,6 @@ class TimeRecordScreen extends React.Component
     orientation: ScreenOrientation.Orientation.PORTRAIT_UP
   };
 
-  /**
-   *
-   * @param props
-   */
   constructor(props) {
     super(props);
 

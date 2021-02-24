@@ -50,20 +50,20 @@ export default class App extends React.Component {
               onFinish={this._handleFinishLoading}
           />
       );
-    } else {
-      return (
-          <NavigationContainer>
-            <Provider store={store}>
-              <PersistGate loading={null} persistor={persistor}>
-                <View style={styles.container}>
-                  {Platform.OS === 'ios' && <StatusBar barStyle="default" />}
-                  <AppNavigator />
-                </View>
-              </PersistGate>
-            </Provider>
-          </NavigationContainer>
-      );
     }
+
+    return (
+        <NavigationContainer>
+          <Provider store={store}>
+            <PersistGate loading={null} persistor={persistor}>
+              <View style={styles.container}>
+                {Platform.OS === 'ios' && <StatusBar barStyle="default" />}
+                <AppNavigator />
+              </View>
+            </PersistGate>
+          </Provider>
+        </NavigationContainer>
+    );
   }
 
   _loadResourcesAsync = async () => {

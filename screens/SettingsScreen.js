@@ -207,7 +207,6 @@ class SettingsScreen extends React.Component {
   }
 }
 
-
 import { connect } from 'react-redux';
 import colors from "../constants/Colors";
 import { updateUser } from "../actions/user";

@@ -150,6 +150,15 @@ class HomeScreen extends Component
    *
    * @param key
    */
+  navigateToRecordAssets(key) {
+    this.props.set(key);
+    this.props.navigation.navigate('AssetsRecord');
+  }
+
+  /**
+   *
+   * @param key
+   */
   navigateToRecordDetail(key) {
     this.props.set(key);
     this.props.navigation.navigate('TimeRecord');
@@ -383,14 +392,26 @@ class HomeScreen extends Component
               keyExtractor={(item, index) => index.toString()}
               renderItem={({item}) => this.getRenderedTimeRecord(item)}
               renderHiddenItem={(data) => (
-                  <View style={{justifyContent: 'flex-end', flex: 1, flexDirection: 'row', alignItems: 'center'}}>
-                    <Icon name="x" type="feather" color={colors.color06} size={30}
+                  <View style={{justifyContent: 'space-between', flex: 1, flexDirection: 'row', alignItems: 'center'}}>
+                    <Icon name="file-plus" type="feather"
+                          color={colors.color06}
+                          size={30}
+                          iconStyle={{paddingLeft: 10}}
+                          onPress={() => {
+                            this.navigateToRecordAssets(data.item.key)
+                          }}
+                    />
+                    <Icon name="x" type="feather"
+                          color={colors.color06}
+                          size={30}
                           iconStyle={{paddingRight: 10}}
                           onPress={() => {
                             this.props.remove(data.item.key)
-                          }}/>
+                          }}
+                    />
                   </View>
               )}
+              leftOpenValue={50}
               rightOpenValue={-50}
               disableHiddenLayoutCalculation={true}
           />
