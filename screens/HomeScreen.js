@@ -398,7 +398,7 @@ class HomeScreen extends Component
                           size={30}
                           iconStyle={{paddingLeft: 10}}
                           onPress={() => {
-                            this.navigateToRecordAssets(data.item.key)
+                            // this.navigateToRecordAssets(data.item.key)
                           }}
                     />
                     <Icon name="x" type="feather"
