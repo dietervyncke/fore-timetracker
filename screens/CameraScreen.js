@@ -50,7 +50,7 @@ export default class CameraScreen extends React.Component {
     await MediaLibrary.createAssetAsync(uri).then(asset => {
       this.toggleLoading();
       this.props.navigation.navigate('AssetsRecord', {
-        assetUri: asset.uri
+        asset: asset
       });
     });
   };

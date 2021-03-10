@@ -63,8 +63,12 @@ export default
     fontSize: 18
   },
   Button: {
+    containerStyle:
+    {
+      borderRadius: 0
+    },
     backgroundColor: colors.color02,
-    color: colors.color01
+    color: colors.color01,
   },
   SyncedData: {
     backgroundColor: colors.color07,

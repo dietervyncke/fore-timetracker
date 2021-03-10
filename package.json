@@ -32,6 +32,8 @@
     "expo-permissions": "~9.3.0",
     "expo-screen-orientation": "~2.0.0",
     "export-to-csv": "^0.2.1",
+    "jszip": "^3.6.0",
+    "jszip-utils": "^0.1.0",
     "moment": "^2.29.1",
     "react": "^16.14.0",
     "react-native": "https://github.com/expo/react-native/archive/sdk-39.0.3.tar.gz",

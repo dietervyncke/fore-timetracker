@@ -328,7 +328,11 @@ class TimeRecordScreen extends React.Component
                     value={this.state.record.orderNumber}
                     multiline={true}
                 />
-                <Button title="Scan" buttonStyle={{backgroundColor: colors.color06, borderRadius: 0, marginRight: 5}} onPress={() => {this.props.navigation.push('BarcodeScanner')}}/>
+                <Button title="Scan"
+                        containerStyle={{ borderRadius: 0 }}
+                        buttonStyle={{backgroundColor: colors.color06, marginRight: 5, borderRadius: 0 }}
+                        onPress={() => {this.props.navigation.push('BarcodeScanner')}}
+                />
               </View>
             </View>
 
@@ -385,7 +389,9 @@ class TimeRecordScreen extends React.Component
 
         {summary}
 
-        <Button title="Save" buttonStyle={{backgroundColor: colors.color06, borderRadius: 0, padding: 10}}
+        <Button title="Save"
+                containerStyle={{ borderRadius: 0 }}
+                buttonStyle={{backgroundColor: colors.color06, borderRadius: 0, padding: 10}}
                 onPress={this.onPressSaveRow.bind(this)} color={colors.color03}/>
 
         {!!this.state.isDateTimePickerVisible && (

@@ -13,6 +13,16 @@ async function convertDataToCsv(file, data, headers = []) {
     });
 }
 
+async function convertDataToTxt(file, data) {
+    const fileUri = FileSystem.documentDirectory+file.replace(' ', '-');
+
+    return writeFile(data, fileUri).then(() => {
+        return getFileInfo(fileUri).then(file => {
+            return file;
+        });
+    });
+}
+
 async function getFileInfo(fileUri) {
     return await FileSystem.getInfoAsync(fileUri);
 }
@@ -38,4 +48,4 @@ function exportCsvFile(objects, headers) {
     return csvExporter.generateCsv(objects, true);
 }
 
-export { convertDataToCsv };
+export { convertDataToCsv, convertDataToTxt };

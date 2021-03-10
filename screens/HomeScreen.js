@@ -13,17 +13,21 @@ import {
   getFormattedHoursAndMinutes
 } from '../util/time';
 
+import {createDirectoryZipFile} from '../util/zip';
+
 import typography from '../constants/Typography';
 import colors from '../constants/Colors';
 import components from '../constants/Components';
 import moment from 'moment';
 
-import { convertDataToCsv } from "../util/export";
+import { convertDataToCsv, convertDataToTxt } from "../util/export";
 import { sendMail } from "../util/send";
 
 import DateTimePicker from './DateTimePicker';
 
 import * as ScreenOrientation from 'expo-screen-orientation';
+import * as MediaLibrary from 'expo-media-library';
+import * as FileSystem from 'expo-file-system';
 
 import {Text, View, Alert, TouchableHighlight } from 'react-native';
 import {Icon, Button} from 'react-native-elements';
@@ -207,6 +211,92 @@ class HomeScreen extends Component
         style: 'cancel',
       },
     ]);
+  }
+
+  async exportAssets() {
+
+    let files = [];
+    let zipFiles = [];
+
+    let records = this.prepareRecordsForAssetsExport(this.props.records);
+
+    for (let record of Object.values(records)) {
+
+      let currentDirectory = FileSystem.documentDirectory + 'fore/' + this.getFileName(record);
+
+      console.log(currentDirectory);
+
+      try {
+        await FileSystem.makeDirectoryAsync(currentDirectory, {intermediates: true});
+      } catch (e) {
+        console.log('----------');
+        console.log(e);
+      }
+
+      return;
+
+      if (record.assetComments) {
+        const file = await this.createTextFile(this.getFileName(record), record.assetComments);
+
+        await FileSystem.moveAsync({
+          from: file.uri,
+          to: currentDirectory
+        });
+      }
+
+      files = files.concat(record.assets);
+
+      await createDirectoryZipFile(currentDirectory, this.getFileName(record));
+
+      zipFiles.push(currentDirectory+'/'+this.getFileName(record)+'.zip');
+    }
+
+    return;
+
+    let response = await sendMail(
+        this.props.user.emailSubject,
+        [this.props.user.storeEmail],
+        this.props.user.emailSubject,
+        [zipFiles]
+    );
+
+    if (response.status === 'sent') {
+      // this.props.syncData();
+      Alert.alert('Success', 'Email sent successfully');
+
+      for (let record of Object.values(records)) {
+        await FileSystem.deleteAsync(FileSystem.documentDirectory + 'fore/' + this.getFileName(record));
+      }
+    }
+  }
+
+  getFileName(record) {
+    return record.orderNumber+'_'+record.date.replace(new RegExp('/', 'g'), '-')+'_'+this.props.user.code;
+  }
+
+  prepareRecordsForAssetsExport(records, recordsCopy = {}) {
+
+    records.forEach(record => {
+
+      if (record.orderNumber.trim().split('\n').length > 1) {
+        return;
+      }
+
+      if (! recordsCopy[record.orderNumber]) {
+        recordsCopy[record.orderNumber] = Object.assign({}, record);
+        return;
+      }
+
+      const currentRecord = recordsCopy[record.orderNumber];
+      currentRecord.assetComments = currentRecord.assetComments.concat('\n', record.assetComments);
+      currentRecord.assets = currentRecord.assets.concat(record.assets);
+    });
+
+    return recordsCopy;
+  }
+
+  async createTextFile(name, data) {
+    return await convertDataToTxt(name+'.txt', data);
   }
 
   /**
@@ -398,7 +488,7 @@ class HomeScreen extends Component
                           size={30}
                           iconStyle={{paddingLeft: 10}}
                           onPress={() => {
-                            // this.navigateToRecordAssets(data.item.key)
+                            this.navigateToRecordAssets(data.item.key)
                           }}
                     />
                     <Icon name="x" type="feather"
@@ -482,6 +572,14 @@ class HomeScreen extends Component
           <View style={{alignItems: 'center', justifyContent: 'center', marginTop: 20, marginBottom: 10}}>
             <Icon name="plus-circle" type="feather" color={colors.color06} size={30}
                   onPress={this.navigateToRecordDetail.bind(this, null)}/>
+          </View>
+
+          <View>
+            <Button style={{marginTop: 10}} color={colors.color03} title="Export assets"
+                    onPress={this.exportAssets.bind(this)}
+                    buttonStyle={{backgroundColor: colors.color06, borderRadius: 0, padding: 10}}
+                    disabled={!this.props.records.length}
+            />
           </View>
 
           {sendDataButton}
