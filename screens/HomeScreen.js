@@ -26,7 +26,6 @@ import { sendMail } from "../util/send";
 import DateTimePicker from './DateTimePicker';
 
 import * as ScreenOrientation from 'expo-screen-orientation';
-import * as MediaLibrary from 'expo-media-library';
 import * as FileSystem from 'expo-file-system';
 
 import {Text, View, Alert, TouchableHighlight } from 'react-native';
@@ -39,7 +38,8 @@ class HomeScreen extends Component
     isDateTimePickerVisible: false,
     activeDateTimeProperty: null,
     dayTotal: 0,
-    isSynced: false,
+    timeLogsSynced: false,
+    assetsSynced: false,
     orientation: ScreenOrientation.Orientation.PORTRAIT_UP
   };
 
@@ -64,11 +64,13 @@ class HomeScreen extends Component
   componentDidUpdate(prevProps, prevState, snapshot) {
     if (prevProps.records !== this.props.records) {
       let dayTotal = this.getDayTotal();
-      let isSynced = this.isDataSynced();
+      let timeLogsSynced = this.timeLogsSynced();
+      let assetsSynced = this.assetsSynced();
 
       this.setState({
         dayTotal: dayTotal,
-        isSynced: isSynced
+        timeLogsSynced: timeLogsSynced,
+        assetsSynced: assetsSynced
       });
 
     }
@@ -79,7 +81,8 @@ class HomeScreen extends Component
    */
   componentDidMount() {
     let dayTotal = this.getDayTotal();
-    let isSynced = this.isDataSynced();
+    let timeLogsSynced = this.timeLogsSynced();
+    let assetsSynced = this.assetsSynced();
 
     ScreenOrientation.getOrientationAsync().then(orientation => {
       this.setState({orientation: orientation});
@@ -87,7 +90,8 @@ class HomeScreen extends Component
 
     this.setState({
       dayTotal: dayTotal,
-      isSynced: isSynced,
+      timeLogsSynced: timeLogsSynced,
+      assetsSynced: assetsSynced
     });
   }
 
@@ -117,10 +121,20 @@ class HomeScreen extends Component
    *
    * @returns {boolean}
    */
-  isDataSynced() {
+  timeLogsSynced() {
     if (this.props.records.length) {
-      let unSyncedData = this.props.records.find(r => r.isSynced === false);
+      let unSyncedData = this.props.records.find(r => r.timeLogsSynced === false);
       return unSyncedData === undefined;
+    }
+  }
+
+  /**
+   *
+   * @returns {boolean}
+   */
+  assetsSynced() {
+    if (this.props.records.length) {
+      return this.props.records.findIndex(r => ! r.assetsSynced) === -1;
     }
   }
 
@@ -191,82 +205,76 @@ class HomeScreen extends Component
     this.props.setDate(getFormattedDate(Date.now()));
   }
 
+  recordsContainsAssets() {
+    return this.props.records.findIndex(record => (record.assets.length || record.assetComments)) > -1;
+  }
+
   /**
    *  Export and send mail
    **/
   exportData() {
 
-    if (! this.state.isSynced) {
+    if (! this.state.timeLogsSynced) {
       this.export();
       return;
     }
 
-    Alert.alert('Are you sure?', 'This data is already synced, send it again?', [
-      {
-        text: 'Export', onPress: () => this.export()
-      },
-      {
-        text: 'Cancel',
-        onPress: () => {},
-        style: 'cancel',
-      },
-    ]);
+    Alert.alert('Are you sure?', 'This data is already synced, send it again?', [{
+      text: 'Export', onPress: () => this.export()
+    }, {
+      text: 'Cancel',
+      onPress: () => {},
+      style: 'cancel',
+    }]);
   }
 
   async exportAssets() {
 
-    let files = [];
-    let zipFiles = [];
-
+    let baseDirectory = FileSystem.documentDirectory + 'fore/';
     let records = this.prepareRecordsForAssetsExport(this.props.records);
+
+    let zipAttachments = [];
 
     for (let record of Object.values(records)) {
 
-      let currentDirectory = FileSystem.documentDirectory + 'fore/' + this.getFileName(record);
-
-      console.log(currentDirectory);
+      let currentDirectory = baseDirectory + this.getFileName(record);
 
       try {
-        await FileSystem.makeDirectoryAsync(currentDirectory, {intermediates: true});
-      } catch (e) {
-        console.log('----------');
-        console.log(e);
-      }
-
-      return;
+        await FileSystem.makeDirectoryAsync(currentDirectory, {intermediates: false});
+      } catch (e) {}
 
       if (record.assetComments) {
-        const file = await this.createTextFile(this.getFileName(record), record.assetComments);
+        await this.createTextFile( 'fore/'+this.getFileName(record)+'/comments', record.assetComments);
+      }
 
-        await FileSystem.moveAsync({
-          from: file.uri,
-          to: currentDirectory
+      for (let i=0; i < record.assets.length; i++) {
+        await FileSystem.copyAsync({
+          from: record.assets[i].uri,
+          to: currentDirectory+'/'+i+'.jpg'
         });
       }
 
-      files = files.concat(record.assets);
+      let zip = await createDirectoryZipFile(currentDirectory, this.getFileName(record));
 
-      await createDirectoryZipFile(currentDirectory, this.getFileName(record));
-
-      zipFiles.push(currentDirectory+'/'+this.getFileName(record)+'.zip');
+      if (zip) {
+        zipAttachments.push(zip);
+      }
     }
-
-    return;
 
     let response = await sendMail(
         this.props.user.emailSubject,
         [this.props.user.storeEmail],
         this.props.user.emailSubject,
-        [zipFiles]
+        zipAttachments
     );
 
-    if (response.status === 'sent') {
-      // this.props.syncData();
-      Alert.alert('Success', 'Email sent successfully');
+    for (let record of Object.values(records)) {
+      await FileSystem.deleteAsync(baseDirectory + this.getFileName(record));
+    }
 
-      for (let record of Object.values(records)) {
-        await FileSystem.deleteAsync(FileSystem.documentDirectory + 'fore/' + this.getFileName(record));
-      }
+    if (response.status === 'sent') {
+      this.props.syncAssets();
+      Alert.alert('Success', 'Email sent successfully');
     }
   }
 
@@ -329,7 +337,7 @@ class HomeScreen extends Component
       ).then(response => {
 
         if (response.status === 'sent') {
-          this.props.syncData();
+          this.props.syncTimeLogs();
           Alert.alert('Success', 'Email sent successfully');
         }
 
@@ -468,7 +476,8 @@ class HomeScreen extends Component
     let dayTotal = null;
     let timeRecords = null;
     let currentDate = null;
-    let sendDataButton = null;
+    let sendTimeLogButton = null;
+    let sendAssetButton = null;
 
     if (this.props.currentDate) {
       currentDate = getFormattedDisplayDate(this.props.currentDate);
@@ -483,14 +492,21 @@ class HomeScreen extends Component
               renderItem={({item}) => this.getRenderedTimeRecord(item)}
               renderHiddenItem={(data) => (
                   <View style={{justifyContent: 'space-between', flex: 1, flexDirection: 'row', alignItems: 'center'}}>
-                    <Icon name="file-plus" type="feather"
-                          color={colors.color06}
-                          size={30}
-                          iconStyle={{paddingLeft: 10}}
-                          onPress={() => {
-                            this.navigateToRecordAssets(data.item.key)
-                          }}
-                    />
+                    {data.item.multiOrder ?
+                        <Icon name="slash" type="feather"
+                              color={colors.color06}
+                              size={30}
+                              iconStyle={{paddingLeft: 10}}
+                        /> :
+                        <Icon name="file-plus" type="feather"
+                              color={colors.color06}
+                              size={30}
+                              iconStyle={{paddingLeft: 10}}
+                              onPress={() => {
+                                this.navigateToRecordAssets(data.item.key)
+                              }}
+                        />
+                    }
                     <Icon name="x" type="feather"
                           color={colors.color06}
                           size={30}
@@ -515,11 +531,37 @@ class HomeScreen extends Component
           this.state.orientation === ScreenOrientation.Orientation.PORTRAIT_UP ||
           this.state.orientation === ScreenOrientation.Orientation.PORTRAIT_DOWN
       ) {
-        sendDataButton = <Button style={{marginTop: 10}} color={colors.color03} title="Export data"
-                                 onPress={() => this.exportData()}
-                                 buttonStyle={{backgroundColor: colors.color06, borderRadius: 0, padding: 10}}
-                                 disabled={!this.props.records.length}
-        />;
+        sendTimeLogButton = (
+            <View flex={1}>
+              <Button style={{marginTop: 10}} color={colors.color03} title="Export time logs"
+                      onPress={() => this.exportData()}
+                      containerStyle={{ borderRadius: 0 }}
+                      disabled={!this.props.records.length}
+                      buttonStyle={[
+                          { backgroundColor: colors.color06, borderRadius: 0, padding: 10 },
+                          this.state.timeLogsSynced ? components.SyncedData : ''
+                        ]}
+              />
+            </View>
+        );
+      }
+
+      if (this.recordsContainsAssets()) {
+        sendAssetButton = (
+            <View flex={1}>
+              <Button style={{marginTop: 10}}
+                      containerStyle={{ borderRadius: 0 }}
+                      color={colors.color03}
+                      title="Export assets"
+                      onPress={this.exportAssets.bind(this)}
+                      disabled={!this.props.records.length}
+                      buttonStyle={[
+                        { backgroundColor: colors.color06, borderRadius: 0, padding: 10 },
+                        this.state.assetsSynced ? components.SyncedData : ''
+                      ]}
+              />
+            </View>
+        );
       }
     }
 
@@ -528,13 +570,13 @@ class HomeScreen extends Component
         <View style={{flex: 1, justifyContent: 'space-between', backgroundColor: colors.color01}}>
 
           {/* Header */}
-          <View style={[{
+          <View style={{
             justifyContent: 'space-between',
             flexDirection: 'row',
             alignItems: 'center',
             paddingLeft: 15,
             paddingRight: 15
-          }, this.state.isSynced ? components.SyncedData : '']}>
+          }}>
             <View style={{
               height: 75,
               flexDirection: 'row',
@@ -574,15 +616,10 @@ class HomeScreen extends Component
                   onPress={this.navigateToRecordDetail.bind(this, null)}/>
           </View>
 
-          <View>
-            <Button style={{marginTop: 10}} color={colors.color03} title="Export assets"
-                    onPress={this.exportAssets.bind(this)}
-                    buttonStyle={{backgroundColor: colors.color06, borderRadius: 0, padding: 10}}
-                    disabled={!this.props.records.length}
-            />
+          <View style={{flexDirection: 'row'}}>
+            {sendTimeLogButton}
+            {sendAssetButton}
           </View>
-
-          {sendDataButton}
 
           <DateTimePicker
               date={moment(this.props.currentDate, 'YYYY/MM/DD').toDate()}
@@ -597,7 +634,7 @@ class HomeScreen extends Component
 }
 
 import {connect} from 'react-redux';
-import {removeRecord, setRecord, setDate, syncData} from '../actions/record';
+import {removeRecord, setRecord, setDate, syncTimeLogs, syncAssets} from '../actions/record';
 
 const mapStateToProps = state => {
   return {
@@ -614,7 +651,8 @@ const mapDispatchToProps = dispatch => {
     remove: (key) => dispatch(removeRecord(key)),
     set: (key) => dispatch(setRecord(key)),
     setDate: (date) => dispatch(setDate(date)),
-    syncData: () => dispatch(syncData())
+    syncTimeLogs: () => dispatch(syncTimeLogs()),
+    syncAssets: () => dispatch(syncAssets())
   }
 };
 

@@ -46,7 +46,7 @@ export default class CameraScreen extends React.Component {
 
   takePictureAndCreateAlbum = async () => {
     this.toggleLoading();
-    const { uri } = await this.camera.takePictureAsync();
+    const { uri } = await this.camera.takePictureAsync({ quality: .25 });
     await MediaLibrary.createAssetAsync(uri).then(asset => {
       this.toggleLoading();
       this.props.navigation.navigate('AssetsRecord', {

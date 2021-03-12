@@ -6,7 +6,7 @@ import {
   SET_RECORD,
   PURGE_RECORDS,
   SET_DATE,
-  SYNC_DATA
+  SYNC_TIME_LOGS, SYNC_ASSETS, UNSET_RECORD
 } from './types';
 
 export const addRecord = payload => {
@@ -23,10 +23,11 @@ export const removeRecord = key => {
   }
 };
 
-export const updateRecord = payload => {
+export const updateRecord = (payload, dataType = 'timeLogs') => {
   return {
     type: UPDATE_RECORD,
     key: payload.key,
+    dataType: dataType,
     payload: payload
   }
 };
@@ -45,6 +46,12 @@ export const setRecord = key => {
   }
 };
 
+export const unsetRecord = () => {
+  return {
+    type: UNSET_RECORD
+  }
+};
+
 export const purgeRecords = () => {
   return {
     type: PURGE_RECORDS
@@ -58,8 +65,14 @@ export const setDate = (date) => {
   }
 };
 
-export const syncData = () => {
+export const syncTimeLogs = () => {
   return {
-    type: SYNC_DATA
+    type: SYNC_TIME_LOGS
+  }
+};
+
+export const syncAssets = () => {
+  return {
+    type: SYNC_ASSETS
   }
 };

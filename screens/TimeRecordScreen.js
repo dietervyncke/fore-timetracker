@@ -216,7 +216,13 @@ class TimeRecordScreen extends React.Component
     }
 
     if (this.props.record.key !== null) {
-      this.props.update(this.state.record);
+
+      if (this.state.record.multiOrder) {
+        this.props.update({...this.state.record, assetComments: null, assets: []});
+      } else {
+        this.props.update(this.state.record);
+      }
+
     } else {
       this.props.add(this.state.record);
     }
@@ -410,7 +416,7 @@ class TimeRecordScreen extends React.Component
 }
 
 import { connect } from 'react-redux';
-import { addRecord, getRecord, updateRecord } from '../actions/record';
+import {addRecord, getRecord, unsetRecord, updateRecord} from '../actions/record';
 
 const mapStateToProps = state => {
   return {
@@ -429,9 +435,6 @@ const mapDispatchToProps = dispatch => {
     },
     update: (payload) => {
       dispatch(updateRecord(payload))
-    },
-    get: (key) => {
-      dispatch(getRecord(key))
     }
   }
 };

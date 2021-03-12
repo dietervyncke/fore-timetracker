@@ -2,9 +2,11 @@ import {
   ADD_RECORD, GET_RECORD,
   PURGE_RECORDS,
   REMOVE_RECORD, SET_RECORD,
+  UNSET_RECORD,
   UPDATE_RECORD,
   SET_DATE,
-  SYNC_DATA,
+  SYNC_TIME_LOGS,
+  SYNC_ASSETS,
   UPDATE_USER
 } from '../actions/types';
 
@@ -34,7 +36,9 @@ const initialState = {
     endTime: getFormattedRoundHoursAndMinutes(),
     breakDuration: 0,
     description: '',
-    isSynced: false
+    timeLogsSynced: false,
+    assetsSynced: false,
+    assets: []
   },
   records: []
 };
@@ -60,8 +64,10 @@ export default function recordReducer(state = initialState, action) {
         ...state,
         records: sortDates(state.records.map(record => {
 
+          let syncedDataType = action.dataType+'Synced';
+
           if (record.key === action.key) {
-            return Object.assign({}, action.payload, {isSynced: false});
+            return Object.assign({}, action.payload, {[syncedDataType]: false});
           }
 
           return {
@@ -71,35 +77,32 @@ export default function recordReducer(state = initialState, action) {
       };
 
     case GET_RECORD:
+
+      let index = state.records.findIndex(r => r.key === action.key);
+
       return {
         ...state,
-        record: state.records.find(record => {
-
-          if (record.key === action.key) {
-            return {
-              ...record
-            };
-          }
-        })
+        record: {...state.records[index]}
       };
 
     case SET_RECORD:
       let record = initialState.record;
 
       if (action.key) {
-         record = state.records.find(record => {
-
-          if (record.key === action.key) {
-            return {
-              ...record
-            };
-          }
-        });
+        let index = state.records.findIndex(r => r.key === action.key);
+        record = {...state.records[index]};
       }
 
       return {
         ...state,
         record: record
+      };
+
+    case UNSET_RECORD:
+
+      return {
+        ...state,
+        record: null
       };
 
     case PURGE_RECORDS:
@@ -114,13 +117,24 @@ export default function recordReducer(state = initialState, action) {
         currentDate: action.date
       };
 
-    case SYNC_DATA:
+    case SYNC_TIME_LOGS:
 
       state.records.forEach(record => {
         if (record.date === state.currentDate) {
-          record.isSynced = true;
+          record.timeLogsSynced = true;
         }
       });
+
+      return {
+        ...state
+      };
+
+    case SYNC_ASSETS:
+
+      state.records
+          .filter(r => r.date === state.currentDate)
+          .forEach(r => r.assetsSynced = true)
+      ;
 
       return {
         ...state

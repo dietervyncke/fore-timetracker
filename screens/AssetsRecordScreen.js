@@ -21,10 +21,6 @@ class AssetsRecordScreen extends React.Component
   }
 
   componentDidMount() {
-    if (! this.props.record.assets) {
-      this.props.record.assets = [];
-    }
-
     this.setState({ record: this.props.record });
   }
 
@@ -45,13 +41,11 @@ class AssetsRecordScreen extends React.Component
   onUpdateInputField(property, value) {
     let record = this.state.record;
     record[property] = value;
-    this.setState({record});
+    this.setState({ record });
   }
 
   onPressSaveRow() {
-
     this.props.update(this.state.record);
-
     this.props.navigation.goBack();
   }
 
@@ -137,7 +131,7 @@ class AssetsRecordScreen extends React.Component
   }
 }
 
-import { getRecord, updateRecord } from "../actions/record";
+import { updateRecord } from "../actions/record";
 import { connect } from "react-redux";
 
 const mapStateToProps = state => {
@@ -149,10 +143,7 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => {
   return {
     update: (payload) => {
-      dispatch(updateRecord(payload))
-    },
-    get: (key) => {
-      dispatch(getRecord(key))
+      dispatch(updateRecord(payload, 'assets'))
     }
   }
 };
