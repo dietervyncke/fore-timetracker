@@ -24,7 +24,9 @@ const initialState = {
         '12:00'
     ],
     storeEmail: '',
-    emailSubject: ''
+    emailSubject: '',
+    assetsEmail: '',
+    assetsEmailSubject: '',
   },
   currentDate: getFormattedDate(new Date()),
   record: {

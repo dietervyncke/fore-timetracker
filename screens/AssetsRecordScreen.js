@@ -108,7 +108,7 @@ class AssetsRecordScreen extends React.Component
               {images}
             </View>
           </ScrollView>
-          <KeyboardAvoidingView style={{ flex: 1, marginTop: 15 }} behavior={Platform.OS == 'ios' ? 'padding' : 'height'} enabled keyboardVerticalOffset={175}>
+          <KeyboardAvoidingView style={{ flex: 1, marginTop: 15 }} behavior={Platform.OS == 'ios' ? 'padding' : 'height'} enabled keyboardVerticalOffset={50}>
             <View style={{ flex: 1 }}>
               <Input
                   ref={this.assetCommentsInput}
@@ -118,6 +118,7 @@ class AssetsRecordScreen extends React.Component
                   inputStyle={{ height: 100 }}
                   label="Comments"
                   multiline={true}
+                  textAlignVertical={'top'}
                   onChangeText={(assetComments) => this.onUpdateInputField('assetComments', assetComments)}
                   onEndEditing={({nativeEvent}) => this.onUpdateInputField('assetComments', nativeEvent.text.trim())}
               />

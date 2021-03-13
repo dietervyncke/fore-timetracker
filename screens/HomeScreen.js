@@ -40,7 +40,8 @@ class HomeScreen extends Component
     dayTotal: 0,
     timeLogsSynced: false,
     assetsSynced: false,
-    orientation: ScreenOrientation.Orientation.PORTRAIT_UP
+    orientation: ScreenOrientation.Orientation.PORTRAIT_UP,
+    loading: false
   };
 
   /**
@@ -230,6 +231,8 @@ class HomeScreen extends Component
 
   async exportAssets() {
 
+    this.toggleLoading();
+
     let baseDirectory = FileSystem.documentDirectory + 'fore/';
     let records = this.prepareRecordsForAssetsExport(this.props.records);
 
@@ -262,15 +265,17 @@ class HomeScreen extends Component
     }
 
     let response = await sendMail(
-        this.props.user.emailSubject,
-        [this.props.user.storeEmail],
-        this.props.user.emailSubject,
+        this.props.user.assetsEmailSubject,
+        [this.props.user.assetsEmail],
+        this.props.user.assetsEmailSubject,
         zipAttachments
     );
 
     for (let record of Object.values(records)) {
       await FileSystem.deleteAsync(baseDirectory + this.getFileName(record));
     }
+
+    this.toggleLoading();
 
     if (response.status === 'sent') {
       this.props.syncAssets();
@@ -280,6 +285,10 @@ class HomeScreen extends Component
 
   getFileName(record) {
     return record.orderNumber+'_'+record.date.replace(new RegExp('/', 'g'), '-')+'_'+this.props.user.code;
+  }
+
+  toggleLoading() {
+    this.setState({ loading: !this.state.loading });
   }
 
   prepareRecordsForAssetsExport(records, recordsCopy = {}) {
@@ -312,6 +321,8 @@ class HomeScreen extends Component
    */
   export() {
 
+    this.toggleLoading();
+
     let result = checkTimeOverlap(this.props.records);
 
     if (result.overlap) {
@@ -340,6 +351,8 @@ class HomeScreen extends Component
           this.props.syncTimeLogs();
           Alert.alert('Success', 'Email sent successfully');
         }
+
+        this.toggleLoading();
 
       });
     });
@@ -536,7 +549,7 @@ class HomeScreen extends Component
               <Button style={{marginTop: 10}} color={colors.color03} title="Export time logs"
                       onPress={() => this.exportData()}
                       containerStyle={{ borderRadius: 0 }}
-                      disabled={!this.props.records.length}
+                      disabled={!this.props.records.length || this.state.loading}
                       buttonStyle={[
                           { backgroundColor: colors.color06, borderRadius: 0, padding: 10 },
                           this.state.timeLogsSynced ? components.SyncedData : ''
@@ -554,7 +567,7 @@ class HomeScreen extends Component
                       color={colors.color03}
                       title="Export assets"
                       onPress={this.exportAssets.bind(this)}
-                      disabled={!this.props.records.length}
+                      disabled={!this.props.records.length || this.state.loading}
                       buttonStyle={[
                         { backgroundColor: colors.color06, borderRadius: 0, padding: 10 },
                         this.state.assetsSynced ? components.SyncedData : ''

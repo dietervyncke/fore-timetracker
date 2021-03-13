@@ -2,7 +2,7 @@ import components from "../constants/Components";
 import React from 'react';
 
 import { Input, Button, Icon, Overlay } from 'react-native-elements';
-import { ScrollView, View } from "react-native";
+import {KeyboardAvoidingView, Platform, ScrollView, View} from "react-native";
 
 class SettingsScreen extends React.Component {
 
@@ -116,24 +116,21 @@ class SettingsScreen extends React.Component {
                      placeholder="Staff number"
                      label="Staff number"
                      value={this.state.user.code}
-                     inputContainerStyle={{marginBottom: 20}}
               />
 
               <Input onChangeText={(storeEmail) => this.onUpdateInputField('storeEmail', storeEmail)}
-                     placeholder="Storage email"
-                     label="Storage email"
+                     placeholder="Time logs email"
+                     label="Time logs email"
                      value={this.state.user.storeEmail}
-                     inputContainerStyle={{marginBottom: 20}}
               />
 
               <Input onChangeText={(emailSubject) => this.onUpdateInputField('emailSubject', emailSubject)}
-                     placeholder="Subject"
-                     label="Subject"
+                     placeholder="Time logs subject"
+                     label="Time logs subject"
                      value={this.state.user.emailSubject}
-                     inputContainerStyle={{marginBottom: 20}}
               />
 
-              <View style={[components.FieldsetRow, {marginTop: 20, marginBottom: 10}]}>
+              <View style={components.FieldsetRow}>
                 <View style={components.FieldsetGroup}>
                   <View style={{flex: 1}}>
                     <Input
@@ -141,7 +138,6 @@ class SettingsScreen extends React.Component {
                         label="Short breaks"
                         disabled={true}
                         value={this.getBreakValues(this.state.user.shortBreaks)}
-                        inputContainerStyle={{marginBottom: 20}}
                     />
                   </View>
                   <Icon type="feather" name="plus" color={colors.color06} size={25} onPress={() => {this.showDateTimePicker('shortBreaks')}} iconStyle={{marginRight: 10}}/>
@@ -149,7 +145,7 @@ class SettingsScreen extends React.Component {
                 </View>
               </View>
 
-              <View style={[components.FieldsetRow, {marginTop: 20, marginBottom: 10}]}>
+              <View style={components.FieldsetRow}>
                 <View style={components.FieldsetGroup}>
                   <View style={{flex: 1}}>
                     <Input
@@ -157,13 +153,26 @@ class SettingsScreen extends React.Component {
                         label="Long breaks"
                         disabled={true}
                         value={this.getBreakValues(this.state.user.longBreaks)}
-                        inputContainerStyle={{marginBottom: 20}}
                     />
                   </View>
                   <Icon type="feather" name="plus" color={colors.color06} size={25} onPress={() => {this.showDateTimePicker('longBreaks')}} iconStyle={{marginRight: 10}}/>
                   <Icon type="feather" name="trash-2" color={colors.color06} size={25} onPress={() => {this.clearInput('longBreaks')}}/>
                 </View>
               </View>
+
+              <KeyboardAvoidingView style={{ flex: 1, marginTop: 15 }} behavior={Platform.OS == 'ios' ? 'padding' : 'height'} enabled>
+                <Input onChangeText={(assetsEmail) => this.onUpdateInputField('assetsEmail', assetsEmail)}
+                       placeholder="Assets email"
+                       label="Email"
+                       value={this.state.user.assetsEmail}
+                />
+
+                <Input onChangeText={(assetsEmailSubject) => this.onUpdateInputField('assetsEmailSubject', assetsEmailSubject)}
+                       placeholder="Email subject"
+                       label="Assets email subject"
+                       value={this.state.user.assetsEmailSubject}
+                />
+              </KeyboardAvoidingView>
 
             </ScrollView>
           </View>
@@ -174,7 +183,7 @@ class SettingsScreen extends React.Component {
 
         <View style={{flex: 1}}>
 
-          <Overlay isVisible={!this.state.isAuthenticated} overlayStyle={{justifyContent: 'center'}}>
+          <Overlay isVisible={!this.state.isAuthenticated} overlayStyle={{justifyContent: 'center'}} fullScreen={true}>
             <View style={{alignItems: 'center'}}>
               <Input
                   containerStyle={{flex: 1, minHeight: 60}}
