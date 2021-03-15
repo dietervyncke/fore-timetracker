@@ -207,7 +207,7 @@ class HomeScreen extends Component
   }
 
   recordsContainsAssets() {
-    return this.props.records.findIndex(record => (record.assets.length || record.assetComments)) > -1;
+    return this.props.records.findIndex(record => (record.assets?.length || record.assetComments)) > -1;
   }
 
   /**
@@ -243,8 +243,10 @@ class HomeScreen extends Component
       let currentDirectory = baseDirectory + this.getFileName(record);
 
       try {
-        await FileSystem.makeDirectoryAsync(currentDirectory, {intermediates: false});
-      } catch (e) {}
+        await FileSystem.makeDirectoryAsync(currentDirectory, {intermediates: true});
+      } catch (e) {
+        this.toggleLoading();
+      }
 
       if (record.assetComments) {
         await this.createTextFile( 'fore/'+this.getFileName(record)+'/comments', record.assetComments);
@@ -288,7 +290,11 @@ class HomeScreen extends Component
   }
 
   toggleLoading() {
-    this.setState({ loading: !this.state.loading });
+    this.setState(prevState => {
+      return {
+        loading: !prevState.loading
+      }
+    });
   }
 
   prepareRecordsForAssetsExport(records, recordsCopy = {}) {
@@ -327,6 +333,7 @@ class HomeScreen extends Component
 
     if (result.overlap) {
       Alert.alert('Woops', 'Can\'t submit, there is a time overlap.');
+      this.toggleLoading();
       return;
     }
 
@@ -335,6 +342,7 @@ class HomeScreen extends Component
 
     if (! data.length) {
       Alert.alert('Woops', 'No data to export');
+      this.toggleLoading();
       return;
     }
 

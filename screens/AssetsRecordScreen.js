@@ -21,14 +21,17 @@ class AssetsRecordScreen extends React.Component
   }
 
   componentDidMount() {
-    this.setState({ record: this.props.record });
+
+    let record = this.props.record;
+
+    this.setState({ record: record });
   }
 
   componentDidUpdate(prevProps) {
+
     if (prevProps.route.params?.asset !== this.props.route.params?.asset) {
       let assets = this.state.record.assets;
-      assets.push(this.props.route.params.asset);
-
+      assets = [...assets, this.props.route.params.asset];
       this.onUpdateInputField('assets', assets);
     }
   }

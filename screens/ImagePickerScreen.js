@@ -30,6 +30,11 @@ export default class ImagePickerScreen extends React.Component
     });
 
     this.setState({ image: asset });
+    
+    if (asset.cancelled) {
+      this.props.navigation.navigate('AssetsRecord');
+      return;
+    }
 
     this.props.navigation.navigate('AssetsRecord', {
       asset: asset

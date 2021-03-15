@@ -3,7 +3,7 @@
     "name": "Foré timetracker",
     "description": "Company time tracker",
     "slug": "fore-timetracker",
-    "version": "0.0.12",
+    "version": "0.0.13",
     "privacy": "public",
     "primaryColor": "#ffffff",
     "platforms": [
@@ -28,7 +28,7 @@
       "requireFullScreen": true
     },
     "android": {
-      "versionCode": 6,
+      "versionCode": 7,
       "package": "com.dietervyncke.foretimetracker"
     },
     "githubUrl": "https://github.com/dietervyncke/fore-timetracker"
