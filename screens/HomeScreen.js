@@ -254,7 +254,7 @@ class HomeScreen extends Component
 
       for (let i=0; i < record.assets.length; i++) {
         await FileSystem.copyAsync({
-          from: record.assets[i].uri,
+          from: record.assets[i],
           to: currentDirectory+'/'+i+'.jpg'
         });
       }

@@ -29,7 +29,7 @@ class AssetsRecordScreen extends React.Component
 
   componentDidUpdate(prevProps) {
 
-    if (prevProps.route.params?.asset !== this.props.route.params?.asset) {
+    if (this.props.route.params?.asset && prevProps.route.params?.asset !== this.props.route.params?.asset) {
       let assets = this.state.record.assets;
       assets = [...assets, this.props.route.params.asset];
       this.onUpdateInputField('assets', assets);
@@ -59,9 +59,9 @@ class AssetsRecordScreen extends React.Component
     for (let i=0; i < this.state.record.assets.length; i++) {
 
       let image = (
-          <View key={i} style={{ borderStyle: 'solid', borderWidth: '5px', borderColor: 'transparent' }}>
+          <View key={i} style={{ borderStyle: 'solid', borderWidth: 3, borderColor: 'transparent' }}>
             <Image
-                source={{ uri: this.state.record.assets[i].uri }}
+                source={{ uri: this.state.record.assets[i] }}
                 style={{ width: 100, height: 100 }}
             />
             <Icon name="x-circle" type="feather"

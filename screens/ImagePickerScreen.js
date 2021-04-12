@@ -23,21 +23,21 @@ export default class ImagePickerScreen extends React.Component
   }
 
   pickImage = async () => {
+
     let asset = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
       allowsEditing: false,
       quality: 0.25,
     });
 
     this.setState({ image: asset });
-    
+
     if (asset.cancelled) {
       this.props.navigation.navigate('AssetsRecord');
       return;
     }
 
     this.props.navigation.navigate('AssetsRecord', {
-      asset: asset
+      asset: asset.uri
     });
   };
 

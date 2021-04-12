@@ -46,11 +46,16 @@ export default class CameraScreen extends React.Component {
 
   takePictureAndCreateAlbum = async () => {
     this.toggleLoading();
-    const { uri } = await this.camera.takePictureAsync({ quality: .25 });
+
+    const { uri } = await this.camera.takePictureAsync({
+      quality: 0.2,
+      ratio: '4:3'
+    });
+
     await MediaLibrary.createAssetAsync(uri).then(asset => {
       this.toggleLoading();
       this.props.navigation.navigate('AssetsRecord', {
-        asset: asset
+        asset: asset.uri
       });
     });
   };
@@ -58,7 +63,7 @@ export default class CameraScreen extends React.Component {
   render() {
     return (
         <View style={{ flex: 1 }}>
-          <Camera ref={ref => this.camera = ref} type={Camera.Constants.Type.back} style={{ flex: 1 }}>
+          <Camera ref={ref => this.camera = ref} type={Camera.Constants.Type.back} style={{ flex: 1 }} useCamera2Api={true}>
             {! this.state.loading &&
               <View style={styles.buttonContainerPortrait}>
                 <TouchableOpacity
