@@ -28,7 +28,7 @@
       "requireFullScreen": true
     },
     "android": {
-      "versionCode": 8,
+      "versionCode": 7,
       "package": "com.dietervyncke.foretimetracker",
       "permissions": [
         "CAMERA",
