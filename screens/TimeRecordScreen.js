@@ -111,6 +111,7 @@ class TimeRecordScreen extends React.Component
     if (Platform.OS === 'ios') {
       this.hideDateTimePicker();
     }
+
     this.onUpdateInputField(this.state.activeDateTimeProperty, getFormattedRoundHoursAndMinutes(date));
     this.getTotalBreakDuration();
   }

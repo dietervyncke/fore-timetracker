@@ -45,7 +45,7 @@ class SettingsScreen extends React.Component {
   }
 
   handleDatePicked(date) {
-    this.onUpdateInputField(this.state.activeDateTimeProperty, getFormattedRoundHoursAndMinutes(date));
+    this.onUpdateInputField(this.state.activeDateTimeProperty, getFormattedHoursAndMinutes(date));
     this.hideDateTimePicker();
   }
 
@@ -206,6 +206,7 @@ class SettingsScreen extends React.Component {
 
           <DateTimePicker
               isVisible={this.state.isDateTimePickerVisible}
+              minuteInterval={15}
               mode='time'
               onConfirm={this.handleDatePicked.bind(this)}
               onCancel={this.hideDateTimePicker.bind(this)}
@@ -220,7 +221,7 @@ import { connect } from 'react-redux';
 import colors from "../constants/Colors";
 import { updateUser } from "../actions/user";
 import DateTimePicker from "./DateTimePicker";
-import { getFormattedRoundHoursAndMinutes } from "../util/time";
+import {getFormattedHoursAndMinutes, getFormattedRoundHoursAndMinutes} from "../util/time";
 
 const mapStateToProps = state => {
   return {
